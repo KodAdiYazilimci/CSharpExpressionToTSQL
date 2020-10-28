@@ -41,11 +41,42 @@ namespace ExpressionToTSQL
             expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body as BinaryExpression, expressionResults);
 
             string rawText = ConvertToRawText(expressionResults); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionLessThan = (x => x.Year < 2020);
+            expressionResults = GetExpressions(expressionLessThan.Body as BinaryExpression, expressionResults);
+            rawText = ConvertToRawText(expressionResults);
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionGreaterThan = (x => x.Year > 2020);
+            expressionResults = GetExpressions(expressionGreaterThan.Body as BinaryExpression, expressionResults);
+            rawText = ConvertToRawText(expressionResults);
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionLessThanOrEqual = (x => x.Year <= 2020);
+            expressionResults = GetExpressions(expressionLessThanOrEqual.Body as BinaryExpression, expressionResults);
+            rawText = ConvertToRawText(expressionResults);
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionGreaterThanOrEqual = (x => x.Year >= 2020);
+            expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body as BinaryExpression, expressionResults);
+            rawText = ConvertToRawText(expressionResults);
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
         {
-            if (binaryExpression.NodeType == ExpressionType.Equal || binaryExpression.NodeType == ExpressionType.NotEqual)
+            if (
+                binaryExpression.NodeType == ExpressionType.Equal
+                ||
+                binaryExpression.NodeType == ExpressionType.NotEqual
+                ||
+                binaryExpression.NodeType == ExpressionType.LessThan
+                ||
+                binaryExpression.NodeType == ExpressionType.GreaterThan
+                ||
+                binaryExpression.NodeType == ExpressionType.LessThanOrEqual
+                ||
+                binaryExpression.NodeType == ExpressionType.GreaterThanOrEqual)
             {
                 ExpressionResult expressionResult = new ExpressionResult();
 
@@ -97,7 +128,7 @@ namespace ExpressionToTSQL
                     sbText.Append(exp.Parentheses);
                 }
 
-                if(!sbText.ToString().EndsWith(" "))
+                if (!sbText.ToString().EndsWith(" "))
                     sbText.Append(" ");
 
                 if (!string.IsNullOrEmpty(exp.MemberName))
@@ -127,6 +158,18 @@ namespace ExpressionToTSQL
                         break;
                     case ExpressionType.Or:
                         sbText.Append("or");
+                        break;
+                    case ExpressionType.LessThan:
+                        sbText.Append("<");
+                        break;
+                    case ExpressionType.GreaterThan:
+                        sbText.Append(">");
+                        break;
+                    case ExpressionType.LessThanOrEqual:
+                        sbText.Append("<=");
+                        break;
+                    case ExpressionType.GreaterThanOrEqual:
+                        sbText.Append(">=");
                         break;
                     default:
                         break;
