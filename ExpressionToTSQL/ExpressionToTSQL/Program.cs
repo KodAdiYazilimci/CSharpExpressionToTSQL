@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ExpressionToTSQL
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
@@ -40,27 +40,27 @@ namespace ExpressionToTSQL
             Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body as BinaryExpression, expressionResults);
 
-            string rawText = ConvertToRawText(expressionResults); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
+            string rawText = expressionResults.ConvertToRawText(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThan = (x => x.Year < 2020);
             expressionResults = GetExpressions(expressionLessThan.Body as BinaryExpression, expressionResults);
-            rawText = ConvertToRawText(expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThan = (x => x.Year > 2020);
             expressionResults = GetExpressions(expressionGreaterThan.Body as BinaryExpression, expressionResults);
-            rawText = ConvertToRawText(expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThanOrEqual = (x => x.Year <= 2020);
             expressionResults = GetExpressions(expressionLessThanOrEqual.Body as BinaryExpression, expressionResults);
-            rawText = ConvertToRawText(expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThanOrEqual = (x => x.Year >= 2020);
             expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body as BinaryExpression, expressionResults);
-            rawText = ConvertToRawText(expressionResults);
+            rawText = expressionResults.ConvertToRawText();
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
@@ -117,7 +117,7 @@ namespace ExpressionToTSQL
             return toExpressionList;
         }
 
-        private static string ConvertToRawText(List<ExpressionResult> expressionResults)
+        private static string ConvertToRawText(this List<ExpressionResult> expressionResults)
         {
             StringBuilder sbText = new StringBuilder();
 
