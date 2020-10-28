@@ -30,11 +30,19 @@ namespace ExpressionToTSQL
             expressionResults.Clear();
             expressionWithParentheses = (x => (x.Name == "Foo" || x.Name == "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParentheses.Body as BinaryExpression, expressionResults);
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionWithNotEqual = (x => x.Name != "Foo");
+            expressionResults = GetExpressions(expressionWithNotEqual.Body as BinaryExpression, expressionResults);
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
+            expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body as BinaryExpression, expressionResults);
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
         {
-            if (binaryExpression.NodeType == ExpressionType.Equal)
+            if (binaryExpression.NodeType == ExpressionType.Equal || binaryExpression.NodeType == ExpressionType.NotEqual)
             {
                 ExpressionResult expressionResult = new ExpressionResult();
 
