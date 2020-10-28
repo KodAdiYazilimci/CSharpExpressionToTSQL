@@ -10,3 +10,4 @@ D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\net
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.dll
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.pdb
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.genruntimeconfig.cache
+D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.csprojAssemblyReference.cache

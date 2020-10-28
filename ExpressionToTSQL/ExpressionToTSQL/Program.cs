@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ExpressionToTSQL
 {
@@ -38,6 +39,8 @@ namespace ExpressionToTSQL
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body as BinaryExpression, expressionResults);
+
+            string rawText = ConvertToRawText(expressionResults); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
@@ -81,6 +84,61 @@ namespace ExpressionToTSQL
             }
 
             return toExpressionList;
+        }
+
+        private static string ConvertToRawText(List<ExpressionResult> expressionResults)
+        {
+            StringBuilder sbText = new StringBuilder();
+
+            foreach (var exp in expressionResults)
+            {
+                if (!string.IsNullOrEmpty(exp.Parentheses))
+                {
+                    sbText.Append(exp.Parentheses);
+                }
+
+                if(!sbText.ToString().EndsWith(" "))
+                    sbText.Append(" ");
+
+                if (!string.IsNullOrEmpty(exp.MemberName))
+                {
+                    sbText.Append(exp.MemberName);
+                }
+
+                if (!string.IsNullOrEmpty(exp.SubProperty))
+                {
+                    sbText.Append(".");
+                    sbText.Append(exp.SubProperty);
+                }
+
+                if (!sbText.ToString().EndsWith(" "))
+                    sbText.Append(" ");
+
+                switch (exp.Condition)
+                {
+                    case ExpressionType.Equal:
+                        sbText.Append("=");
+                        break;
+                    case ExpressionType.NotEqual:
+                        sbText.Append("!=");
+                        break;
+                    case ExpressionType.And:
+                        sbText.Append("and");
+                        break;
+                    case ExpressionType.Or:
+                        sbText.Append("or");
+                        break;
+                    default:
+                        break;
+                }
+
+                if (!sbText.ToString().EndsWith(" "))
+                    sbText.Append(" ");
+
+                sbText.Append(exp.Value);
+            }
+
+            return sbText.ToString();
         }
     }
 }
