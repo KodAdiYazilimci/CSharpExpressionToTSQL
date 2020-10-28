@@ -1,9 +1,11 @@
-﻿namespace ExpressionToTSQL
+﻿using System.Linq.Expressions;
+
+namespace ExpressionToTSQL
 {
     public class ExpressionResult
     {
         public string MemberName { get; set; }
         public string Value { get; set; }
-        public string Condition { get; set; }
+        public ExpressionType Condition { get; set; }
     }
 }

@@ -26,14 +26,14 @@ namespace ExpressionToTSQL
                 toExpressionList.Add(new ExpressionResult()
                 {
                     MemberName = (binaryExpression.Left as MemberExpression).Member.Name,       // Name
-                    Condition = binaryExpression.NodeType.ToString(),                           // ==
+                    Condition = binaryExpression.NodeType,                           // ==
                     Value = (binaryExpression.Right as ConstantExpression).Value.ToString(),    // Foo
                 });
             }
             else if (binaryExpression.NodeType == ExpressionType.OrElse)
             {
                 GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Foo
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or.ToString() });  // Or
+                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or });  // Or
                 GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Name == Goo
             }
 
