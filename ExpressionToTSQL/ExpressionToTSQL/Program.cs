@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace ExpressionToTSQL
@@ -7,19 +8,36 @@ namespace ExpressionToTSQL
     {
         static void Main(string[] args)
         {
-            Expression<Func<SampleClass, bool>> expression = (x => x.Name == "Foo");
+            List<ExpressionResult> expressionResults = new List<ExpressionResult>();
 
-            var expressionResult = GetExpression(expression.Body as BinaryExpression);
+            Expression<Func<SampleClass, bool>> expression = (x => x.Name == "Foo");
+            expressionResults = GetExpressions(expression.Body as BinaryExpression, expressionResults);
+
+            expressionResults.Clear();
+
+            Expression<Func<SampleClass, bool>> expressionWithOr = (x => x.Name == "Foo" || x.Name == "Goo");
+            expressionResults = GetExpressions(expressionWithOr.Body as BinaryExpression, expressionResults);
         }
 
-        private static ExpressionResult GetExpression(BinaryExpression binaryExpression)
+        private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
         {
-            return new ExpressionResult()
+            if (binaryExpression.NodeType == ExpressionType.Equal)
             {
-                MemberName = (binaryExpression.Left as MemberExpression).Member.Name,
-                Value = (binaryExpression.Right as ConstantExpression).Value.ToString(),
-                Condition = binaryExpression.NodeType.ToString()
-            };
+                toExpressionList.Add(new ExpressionResult()
+                {
+                    MemberName = (binaryExpression.Left as MemberExpression).Member.Name,       // Name
+                    Condition = binaryExpression.NodeType.ToString(),                           // ==
+                    Value = (binaryExpression.Right as ConstantExpression).Value.ToString(),    // Foo
+                });
+            }
+            else if (binaryExpression.NodeType == ExpressionType.OrElse)
+            {
+                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Foo
+                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or.ToString() });  // Or
+                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Name == Goo
+            }
+
+            return toExpressionList;
         }
     }
 }
