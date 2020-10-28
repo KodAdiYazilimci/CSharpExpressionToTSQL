@@ -23,13 +23,20 @@ namespace ExpressionToTSQL
             Expression<Func<SampleClass, bool>> expressionWithAnd = (x => x.Name == "Foo" && x.Name.Length == 3);
             expressionResults = GetExpressions(expressionWithAnd.Body as BinaryExpression, expressionResults);
 
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionWithParentheses = (x => x.Name == "Foo" || (x.Name == "Goo" && x.Year == 2020));
+            expressionResults = GetExpressions(expressionWithParentheses.Body as BinaryExpression, expressionResults);
+
+            expressionResults.Clear();
+            expressionWithParentheses = (x => (x.Name == "Foo" || x.Name == "Goo") && x.Year == 2020);
+            expressionResults = GetExpressions(expressionWithParentheses.Body as BinaryExpression, expressionResults);
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
         {
             if (binaryExpression.NodeType == ExpressionType.Equal)
             {
-                ExpressionResult expressionResult = new ExpressionResult();                                                     
+                ExpressionResult expressionResult = new ExpressionResult();
 
                 MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
 
@@ -50,15 +57,19 @@ namespace ExpressionToTSQL
             }
             else if (binaryExpression.NodeType == ExpressionType.OrElse)
             {
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Foo
+                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Goo
                 toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Name == Goo
+                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
+                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
             }
             else if (binaryExpression.NodeType == ExpressionType.AndAlso)
             {
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.And });
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);
+                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // (Name == Foo Or || Name == Goo)
+                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
+                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
+                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
             }
 
             return toExpressionList;

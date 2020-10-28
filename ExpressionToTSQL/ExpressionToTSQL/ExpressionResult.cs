@@ -8,5 +8,6 @@ namespace ExpressionToTSQL
         public string Value { get; set; }
         public ExpressionType Condition { get; set; }
         public string SubProperty { get; set; }
+        public string Parentheses { get; set; }
     }
 }
