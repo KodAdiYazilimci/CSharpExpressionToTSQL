@@ -7,5 +7,6 @@ namespace ExpressionToTSQL
         public string MemberName { get; set; }
         public string Value { get; set; }
         public ExpressionType Condition { get; set; }
+        public string SubProperty { get; set; }
     }
 }
