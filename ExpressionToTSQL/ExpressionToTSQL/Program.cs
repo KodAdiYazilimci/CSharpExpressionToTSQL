@@ -66,6 +66,11 @@ namespace ExpressionToTSQL
             Expression<Func<SampleClass, bool>> expressionToLower = (x => x.Name.ToLower() == "foo");
             expressionResults = GetExpressions(expressionToLower.Body as BinaryExpression, expressionResults);
             rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionToUpper = (x => x.Name.ToUpper() == "FOO");
+            expressionResults = GetExpressions(expressionToUpper.Body as BinaryExpression, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
@@ -97,16 +102,12 @@ namespace ExpressionToTSQL
                     {
                         expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
                         expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
-                    }                    
+                    }
                 }
                 else if (binaryExpression.Left is MethodCallExpression)
                 {
                     MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
-
-                    if (methodCallExpression.Method.Name == "ToLower")
-                    {
-                        expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
-                    }
+                    expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
 
                     expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
                 }
