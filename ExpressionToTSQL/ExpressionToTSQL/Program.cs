@@ -161,8 +161,6 @@ namespace ExpressionToTSQL
 
         private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList)
         {
-            ExpressionResult expressionResult = new ExpressionResult();
-
             if (expression is BinaryExpression)
             {
                 BinaryExpression binaryExpression = expression as BinaryExpression;
@@ -171,15 +169,7 @@ namespace ExpressionToTSQL
             else if (expression is MethodCallExpression)
             {
                 MethodCallExpression methodCallExpression = expression as MethodCallExpression;
-                //expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
-
-                expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
-                if (methodCallExpression.Arguments != null && methodCallExpression.Arguments.Any())
-                {
-                    expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
-                }
-
-                //expressionResult = Extract(methodCallExpression);
+                ExpressionResult expressionResult = Extract(methodCallExpression);
                 toExpressionList.Add(expressionResult);
             }
             else if (expression is LambdaExpression)
@@ -189,7 +179,7 @@ namespace ExpressionToTSQL
                 if (lambdaExpression.Body is MethodCallExpression)
                 {
                     MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                    expressionResult = Extract(methodCallExpression);
+                    ExpressionResult expressionResult = Extract(methodCallExpression);
                     toExpressionList.Add(expressionResult);
                 }
                 else if (lambdaExpression.Body is UnaryExpression)
@@ -203,7 +193,7 @@ namespace ExpressionToTSQL
                             MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
                             toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
                             toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
-                            expressionResult = Extract(methodCallExpression);
+                            ExpressionResult expressionResult = Extract(methodCallExpression);
                             toExpressionList.Add(expressionResult);
                             toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                         }
@@ -221,7 +211,7 @@ namespace ExpressionToTSQL
                         MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
-                        expressionResult = Extract(methodCallExpression);
+                        ExpressionResult expressionResult = Extract(methodCallExpression);
                         toExpressionList.Add(expressionResult);
                         toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                     }
