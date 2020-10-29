@@ -159,19 +159,19 @@ namespace ExpressionToTSQL
             rawText = expressionResults.ConvertToRawText();
         }
 
-        private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList)
+        private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList) //this method may be call recursive for sub-expressions
         {
-            if (expression is BinaryExpression)
+            if (expression is BinaryExpression) // x.Name == "Foo" // for equality statement of the property
             {
                 BinaryExpression binaryExpression = expression as BinaryExpression;
                 toExpressionList.AddRange(Extract(binaryExpression));
             }
-            else if (expression is MethodCallExpression)
+            else if (expression is MethodCallExpression) //x.Name.StartsWith(F) // the property calls any method
             {
                 MethodCallExpression methodCallExpression = expression as MethodCallExpression;
                 toExpressionList.AddRange(Extract(methodCallExpression));
             }
-            else if (expression is LambdaExpression)
+            else if (expression is LambdaExpression) //stringListItems.Contains(x.Name) // the property will be searched in a array
             {
                 LambdaExpression lambdaExpression = expression as LambdaExpression;
 
@@ -197,13 +197,13 @@ namespace ExpressionToTSQL
                     }
                 }
             }
-            else if (expression is UnaryExpression)
+            else if (expression is UnaryExpression) //Not((x.Name == "Foo") // for "not equal" statement of property
             {
                 UnaryExpression unaryExpression = expression as UnaryExpression;
 
-                if (unaryExpression.NodeType == ExpressionType.Not)
+                if (unaryExpression.NodeType == ExpressionType.Not) //Not((x.Name == "Foo") // for "not equal" statement of property
                 {
-                    if (unaryExpression.Operand is MethodCallExpression)
+                    if (unaryExpression.Operand is MethodCallExpression) // Not(x.Name.StartsWith(F))  // for "not equal" statement of property which calls a method
                     {
                         MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
@@ -211,7 +211,7 @@ namespace ExpressionToTSQL
                         toExpressionList.AddRange(Extract(methodCallExpression));
                         toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                     }
-                    else if (unaryExpression.Operand is BinaryExpression)
+                    else if (unaryExpression.Operand is BinaryExpression) // Not((x.Name == "Foo") // for "not equal" statement of property
                     {
                         BinaryExpression binaryExpression = unaryExpression.Operand as BinaryExpression;
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
@@ -229,18 +229,18 @@ namespace ExpressionToTSQL
         {
             List<ExpressionResult> expressionResults = new List<ExpressionResult>();
 
-            if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Object is MemberExpression)
+            if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Object is MemberExpression) //x.Name.StartsWith(F) or stringListItems.Contains(x.Name)
             {
                 ExpressionResult expressionResult = new ExpressionResult();
                 expressionResult.SubProperty = methodCallExpression.Method.Name;
 
                 if (methodCallExpression.Object is MemberExpression)
                 {
-                    expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;
+                    expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name; // x.Name.StartsWith(F) => "Name" or stringListItems.Contains(x.Name) => stringListItems
                 }
                 if (methodCallExpression.Arguments.FirstOrDefault() is MemberExpression)
                 {
-                    expressionResult.MemberName = (methodCallExpression.Arguments.FirstOrDefault() as MemberExpression).Member.Name;
+                    expressionResult.MemberName = (methodCallExpression.Arguments.FirstOrDefault() as MemberExpression).Member.Name; // stringListItems.Contains(x.Name) => "Name"
                 }
 
                 MemberExpression memberExpression = methodCallExpression.Object as MemberExpression;
@@ -248,7 +248,7 @@ namespace ExpressionToTSQL
                 Expression subExpression = memberExpression.Expression;
                 string expressionParameterKeyword = memberExpression.Member.Name;
 
-                if (subExpression is ConstantExpression)
+                if (subExpression is ConstantExpression) //stringListItems.Contains(x.Name)
                 {
                     object subExpressionValue = (subExpression as ConstantExpression).Value;
 
@@ -256,7 +256,7 @@ namespace ExpressionToTSQL
                     {
                         List<string> values = subExpressionValue.GetType().GetField(expressionParameterKeyword).GetValue(subExpressionValue) as List<string>;
                         expressionResult.SubPropertyArgumentType = typeof(string);
-                        expressionResult.SubPropertyArguments.AddRange(values);
+                        expressionResult.SubPropertyArguments.AddRange(values); // stringListItems.Contains(x.Name) => elements of "stringListItems"
                     }
                     else if (methodCallExpression.Object.Type == typeof(List<int>))
                     {
@@ -265,21 +265,21 @@ namespace ExpressionToTSQL
                         expressionResult.SubPropertyArguments.AddRange(values.Select(x => x.ToString()).ToList());
                     }
                 }
-                else
+                else // x.Name.StartsWith(F)
                 {
                     if (methodCallExpression.Arguments.FirstOrDefault() is ConstantExpression)
                     {
                         ConstantExpression constantExpression = methodCallExpression.Arguments.FirstOrDefault() as ConstantExpression;
 
                         expressionResult.SubPropertyArgumentType = constantExpression.Value.GetType();
-                        expressionResult.Value = constantExpression.Value.ToString();
+                        expressionResult.Value = constantExpression.Value.ToString(); // x.Name.StartsWith(F) => "F"
 
                     }
                 }
 
                 expressionResults.Add(expressionResult);
             }
-            else if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Method.DeclaringType == typeof(Enumerable))
+            else if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Method.DeclaringType == typeof(Enumerable)) //stringArrayItems.Contains(x.Name)
             {
                 ExpressionResult expressionResult = new ExpressionResult();
                 expressionResult.SubProperty = methodCallExpression.Method.Name;
@@ -299,7 +299,7 @@ namespace ExpressionToTSQL
                     object values = (memberExpression.Expression as ConstantExpression).Value;
                     object items = values.GetType().GetField(expressionParameterKeyword).GetValue(values);
 
-                    expressionResult.SubPropertyArguments.AddRange((items as string[]));
+                    expressionResult.SubPropertyArguments.AddRange((items as string[])); // stringArrayItems.Contains(x.Name) => elements of "stringArrayItems"
                     expressionResult.SubPropertyArgumentType = typeof(string);
                 }
                 else if (memberExpression.Type == typeof(int[]))
