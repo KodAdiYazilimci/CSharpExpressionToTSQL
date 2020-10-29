@@ -164,13 +164,12 @@ namespace ExpressionToTSQL
             if (expression is BinaryExpression)
             {
                 BinaryExpression binaryExpression = expression as BinaryExpression;
-                Extract(binaryExpression, toExpressionList);
+                toExpressionList.AddRange(Extract(binaryExpression));
             }
             else if (expression is MethodCallExpression)
             {
                 MethodCallExpression methodCallExpression = expression as MethodCallExpression;
-                ExpressionResult expressionResult = Extract(methodCallExpression);
-                toExpressionList.Add(expressionResult);
+                toExpressionList.AddRange(Extract(methodCallExpression));
             }
             else if (expression is LambdaExpression)
             {
@@ -179,8 +178,7 @@ namespace ExpressionToTSQL
                 if (lambdaExpression.Body is MethodCallExpression)
                 {
                     MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
-                    ExpressionResult expressionResult = Extract(methodCallExpression);
-                    toExpressionList.Add(expressionResult);
+                    toExpressionList.AddRange(Extract(methodCallExpression));
                 }
                 else if (lambdaExpression.Body is UnaryExpression)
                 {
@@ -193,8 +191,7 @@ namespace ExpressionToTSQL
                             MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
                             toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
                             toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
-                            ExpressionResult expressionResult = Extract(methodCallExpression);
-                            toExpressionList.Add(expressionResult);
+                            toExpressionList.AddRange(Extract(methodCallExpression));
                             toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                         }
                     }
@@ -211,8 +208,7 @@ namespace ExpressionToTSQL
                         MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
-                        ExpressionResult expressionResult = Extract(methodCallExpression);
-                        toExpressionList.Add(expressionResult);
+                        toExpressionList.AddRange(Extract(methodCallExpression));
                         toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                     }
                     else if (unaryExpression.Operand is BinaryExpression)
@@ -220,7 +216,7 @@ namespace ExpressionToTSQL
                         BinaryExpression binaryExpression = unaryExpression.Operand as BinaryExpression;
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
                         toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
-                        Extract(binaryExpression, toExpressionList);
+                        toExpressionList.AddRange(Extract(binaryExpression));
                         toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
                     }
                 }
@@ -229,14 +225,15 @@ namespace ExpressionToTSQL
             return toExpressionList;
         }
 
-        private static ExpressionResult Extract(MethodCallExpression methodCallExpression)
+        private static List<ExpressionResult> Extract(MethodCallExpression methodCallExpression)
         {
-            ExpressionResult expressionResult = new ExpressionResult();
-
-            expressionResult.SubProperty = methodCallExpression.Method.Name;
+            List<ExpressionResult> expressionResults = new List<ExpressionResult>();
 
             if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Object is MemberExpression)
             {
+                ExpressionResult expressionResult = new ExpressionResult();
+                expressionResult.SubProperty = methodCallExpression.Method.Name;
+
                 if (methodCallExpression.Object is MemberExpression)
                 {
                     expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;
@@ -279,9 +276,14 @@ namespace ExpressionToTSQL
 
                     }
                 }
+
+                expressionResults.Add(expressionResult);
             }
             else if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Method.DeclaringType == typeof(Enumerable))
             {
+                ExpressionResult expressionResult = new ExpressionResult();
+                expressionResult.SubProperty = methodCallExpression.Method.Name;
+
                 Expression parameterExpression = methodCallExpression.Arguments.FirstOrDefault(x => x is MemberExpression && (x as MemberExpression).Expression.NodeType == ExpressionType.Parameter);
 
                 expressionResult.MemberName = (parameterExpression as MemberExpression).Member.Name;
@@ -308,13 +310,17 @@ namespace ExpressionToTSQL
                     expressionResult.SubPropertyArguments.AddRange((items as int[]).Select(x => x.ToString()).ToList());
                     expressionResult.SubPropertyArgumentType = typeof(int);
                 }
+
+                expressionResults.Add(expressionResult);
             }
 
-            return expressionResult;
+            return expressionResults;
         }
 
-        private static void Extract(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
+        private static List<ExpressionResult> Extract(BinaryExpression binaryExpression)
         {
+            List<ExpressionResult> expressionResults = new List<ExpressionResult>();
+
             ExpressionResult expressionResult = new ExpressionResult();
 
             if (
@@ -343,6 +349,10 @@ namespace ExpressionToTSQL
                         expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
                         expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
                     }
+                    expressionResult.Condition = binaryExpression.NodeType;                                      // ==
+                    expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
+
+                    expressionResults.Add(expressionResult);
                 }
                 else if (binaryExpression.Left is MethodCallExpression)
                 {
@@ -354,29 +364,30 @@ namespace ExpressionToTSQL
                     {
                         expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
                     }
+                    expressionResult.Condition = binaryExpression.NodeType;                                      // ==
+                    expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
+
+                    expressionResults.Add(expressionResult);
                 }
-
-                expressionResult.Condition = binaryExpression.NodeType;                                      // ==
-                expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
-
-                toExpressionList.Add(expressionResult);
             }
             else if (binaryExpression.NodeType == ExpressionType.OrElse)
             {
-                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Goo
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
-                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
+                expressionResults.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                GetExpressions(binaryExpression.Left as BinaryExpression, expressionResults);                // Name == Goo
+                expressionResults.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
+                GetExpressions(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
+                expressionResults.Add(new ExpressionResult() { Parentheses = ")" });                         // )
             }
             else if (binaryExpression.NodeType == ExpressionType.AndAlso)
             {
-                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // (Name == Foo Or || Name == Goo)
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
-                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
+                expressionResults.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                GetExpressions(binaryExpression.Left as BinaryExpression, expressionResults);                // (Name == Foo Or || Name == Goo)
+                expressionResults.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
+                GetExpressions(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
+                expressionResults.Add(new ExpressionResult() { Parentheses = ")" });                         // )
             }
+
+            return expressionResults;
         }
 
         private static string ConvertToRawText(this List<ExpressionResult> expressionResults)
