@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -71,6 +72,11 @@ namespace ExpressionToTSQL
             Expression<Func<SampleClass, bool>> expressionToUpper = (x => x.Name.ToUpper() == "FOO");
             expressionResults = GetExpressions(expressionToUpper.Body as BinaryExpression, expressionResults);
             rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionSubString = (x => x.Name.Substring(0, 3) == "Fooooo");
+            expressionResults = GetExpressions(expressionSubString.Body as BinaryExpression, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
@@ -110,6 +116,10 @@ namespace ExpressionToTSQL
                     expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
 
                     expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
+                    if (methodCallExpression.Arguments != null && methodCallExpression.Arguments.Any())
+                    {
+                        expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
+                    }
                 }
 
                 expressionResult.Condition = binaryExpression.NodeType;                                      // ==
@@ -160,6 +170,13 @@ namespace ExpressionToTSQL
                 {
                     sbText.Append(".");
                     sbText.Append(exp.SubProperty);
+
+                    if (exp.SubPropertyArguments.Any())
+                    {
+                        sbText.Append("(");
+                        sbText.Append(String.Join(',', exp.SubPropertyArguments));
+                        sbText.Append(")");
+                    }
                 }
 
                 if (!sbText.ToString().EndsWith(" "))
