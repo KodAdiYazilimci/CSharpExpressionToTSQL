@@ -351,7 +351,7 @@ namespace ExpressionToTSQL
                     }
                     expressionResult.Condition = binaryExpression.NodeType;                                      // ==
                     expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
-
+                    expressionResult.SubPropertyArgumentType = binaryExpression.Right.Type;
                     expressionResults.Add(expressionResult);
                 }
                 else if (binaryExpression.Left is MethodCallExpression)
@@ -366,7 +366,7 @@ namespace ExpressionToTSQL
                     }
                     expressionResult.Condition = binaryExpression.NodeType;                                      // ==
                     expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
-
+                    expressionResult.SubPropertyArgumentType = binaryExpression.Right.Type;
                     expressionResults.Add(expressionResult);
                 }
             }
@@ -567,7 +567,11 @@ namespace ExpressionToTSQL
                     sbText.Append(" ");
                     sbText.Append(GetConditionChar(exp.Condition));
                     sbText.Append(" ");
+                    if (exp.SubPropertyArgumentType == typeof(string))
+                        sbText.Append("'");
                     sbText.Append(exp.Value);
+                    if (exp.SubPropertyArgumentType == typeof(string))
+                        sbText.Append("'");
                 }
             }
 
