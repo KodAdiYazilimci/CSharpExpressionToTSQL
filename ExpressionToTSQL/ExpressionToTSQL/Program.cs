@@ -12,36 +12,41 @@ namespace ExpressionToTSQL
         static void Main(string[] args)
         {
             List<ExpressionResult> expressionResults = new List<ExpressionResult>();
+            string rawText = string.Empty;
 
             Expression<Func<SampleClass, bool>> expression = (x => x.Name == "Foo");
             expressionResults = GetExpressions(expression.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
-
             Expression<Func<SampleClass, bool>> expressionWithOr = (x => x.Name == "Foo" || x.Name == "Goo");
             expressionResults = GetExpressions(expressionWithOr.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithAnd = (x => x.Name == "Foo" && x.Name.Length == 3);
             expressionResults = GetExpressions(expressionWithAnd.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParentheses = (x => x.Name == "Foo" || (x.Name == "Goo" && x.Year == 2020));
             expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             expressionWithParentheses = (x => (x.Name == "Foo" || x.Name == "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithNotEqual = (x => x.Name != "Foo");
             expressionResults = GetExpressions(expressionWithNotEqual.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body, expressionResults);
-
-            string rawText = expressionResults.ConvertToRawText(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
+            rawText = expressionResults.ConvertToRawText(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThan = (x => x.Year < 2020);
