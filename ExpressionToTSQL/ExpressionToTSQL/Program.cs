@@ -14,134 +14,163 @@ namespace ExpressionToTSQL
             List<ExpressionResult> expressionResults = new List<ExpressionResult>();
 
             Expression<Func<SampleClass, bool>> expression = (x => x.Name == "Foo");
-            expressionResults = GetExpressions(expression.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expression.Body, expressionResults);
 
             expressionResults.Clear();
 
             Expression<Func<SampleClass, bool>> expressionWithOr = (x => x.Name == "Foo" || x.Name == "Goo");
-            expressionResults = GetExpressions(expressionWithOr.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithOr.Body, expressionResults);
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithAnd = (x => x.Name == "Foo" && x.Name.Length == 3);
-            expressionResults = GetExpressions(expressionWithAnd.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithAnd.Body, expressionResults);
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParentheses = (x => x.Name == "Foo" || (x.Name == "Goo" && x.Year == 2020));
-            expressionResults = GetExpressions(expressionWithParentheses.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
 
             expressionResults.Clear();
             expressionWithParentheses = (x => (x.Name == "Foo" || x.Name == "Goo") && x.Year == 2020);
-            expressionResults = GetExpressions(expressionWithParentheses.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithNotEqual = (x => x.Name != "Foo");
-            expressionResults = GetExpressions(expressionWithNotEqual.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithNotEqual.Body, expressionResults);
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
-            expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body, expressionResults);
 
             string rawText = expressionResults.ConvertToRawText(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThan = (x => x.Year < 2020);
-            expressionResults = GetExpressions(expressionLessThan.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionLessThan.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThan = (x => x.Year > 2020);
-            expressionResults = GetExpressions(expressionGreaterThan.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionGreaterThan.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThanOrEqual = (x => x.Year <= 2020);
-            expressionResults = GetExpressions(expressionLessThanOrEqual.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionLessThanOrEqual.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThanOrEqual = (x => x.Year >= 2020);
-            expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionToLower = (x => x.Name.ToLower() == "foo");
-            expressionResults = GetExpressions(expressionToLower.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionToLower.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionToUpper = (x => x.Name.ToUpper() == "FOO");
-            expressionResults = GetExpressions(expressionToUpper.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionToUpper.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionSubString = (x => x.Name.Substring(0, 3) == "Fooooo");
-            expressionResults = GetExpressions(expressionSubString.Body as BinaryExpression, expressionResults);
+            expressionResults = GetExpressions(expressionSubString.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionStartsWith = (x => x.Name.StartsWith('F'));
+            expressionResults = GetExpressions(expressionStartsWith.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionEndsWith = (x => x.Name.EndsWith("o"));
+            expressionResults = GetExpressions(expressionEndsWith.Body, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
+
         }
 
-        private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
+        private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList)
         {
-            if (
-                binaryExpression.NodeType == ExpressionType.Equal
-                ||
-                binaryExpression.NodeType == ExpressionType.NotEqual
-                ||
-                binaryExpression.NodeType == ExpressionType.LessThan
-                ||
-                binaryExpression.NodeType == ExpressionType.GreaterThan
-                ||
-                binaryExpression.NodeType == ExpressionType.LessThanOrEqual
-                ||
-                binaryExpression.NodeType == ExpressionType.GreaterThanOrEqual)
+            ExpressionResult expressionResult = new ExpressionResult();
+
+            if (expression is BinaryExpression)
             {
-                ExpressionResult expressionResult = new ExpressionResult();
+                BinaryExpression binaryExpression = expression as BinaryExpression;
 
-                if (binaryExpression.Left is MemberExpression)
+                if (
+                    binaryExpression.NodeType == ExpressionType.Equal
+                    ||
+                    binaryExpression.NodeType == ExpressionType.NotEqual
+                    ||
+                    binaryExpression.NodeType == ExpressionType.LessThan
+                    ||
+                    binaryExpression.NodeType == ExpressionType.GreaterThan
+                    ||
+                    binaryExpression.NodeType == ExpressionType.LessThanOrEqual
+                    ||
+                    binaryExpression.NodeType == ExpressionType.GreaterThanOrEqual)
                 {
-                    MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
+                    if (binaryExpression.Left is MemberExpression)
+                    {
+                        MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
 
-                    if (memberExpression.Expression != null && memberExpression.Expression.Type == typeof(SampleClass))
-                    {
-                        expressionResult.MemberName = memberExpression.Member.Name;                                               // Name
+                        if (memberExpression.Expression != null && memberExpression.Expression.Type == typeof(SampleClass))
+                        {
+                            expressionResult.MemberName = memberExpression.Member.Name;                                               // Name
+                        }
+                        else
+                        {
+                            expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
+                            expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
+                        }
                     }
-                    else
+                    else if (binaryExpression.Left is MethodCallExpression)
                     {
-                        expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
-                        expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
+                        MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
+                        expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
+
+                        expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
+                        if (methodCallExpression.Arguments != null && methodCallExpression.Arguments.Any())
+                        {
+                            expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
+                        }
                     }
+
+                    expressionResult.Condition = binaryExpression.NodeType;                                      // ==
+                    expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
+
+                    toExpressionList.Add(expressionResult);
                 }
-                else if (binaryExpression.Left is MethodCallExpression)
+                else if (binaryExpression.NodeType == ExpressionType.OrElse)
                 {
-                    MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
-                    expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
-
-                    expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
-                    if (methodCallExpression.Arguments != null && methodCallExpression.Arguments.Any())
-                    {
-                        expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
-                    }
+                    toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                    GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Goo
+                    toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
+                    GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
+                    toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
                 }
+                else if (binaryExpression.NodeType == ExpressionType.AndAlso)
+                {
+                    toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
+                    GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // (Name == Foo Or || Name == Goo)
+                    toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
+                    GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
+                    toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
+                }
+            }
+            else if (expression is MethodCallExpression)
+            {
+                MethodCallExpression methodCallExpression = expression as MethodCallExpression;
+                expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
 
-                expressionResult.Condition = binaryExpression.NodeType;                                      // ==
-                expressionResult.Value = (binaryExpression.Right as ConstantExpression).Value.ToString();    // Foo
+                expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
+                if (methodCallExpression.Arguments != null && methodCallExpression.Arguments.Any())
+                {
+                    expressionResult.SubPropertyArguments.AddRange(methodCallExpression.Arguments.Select(x => (x as ConstantExpression).Value).ToList());
+                }
 
                 toExpressionList.Add(expressionResult);
-            }
-            else if (binaryExpression.NodeType == ExpressionType.OrElse)
-            {
-                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // Name == Goo
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
-                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
-            }
-            else if (binaryExpression.NodeType == ExpressionType.AndAlso)
-            {
-                toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions(binaryExpression.Left as BinaryExpression, toExpressionList);                // (Name == Foo Or || Name == Goo)
-                toExpressionList.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
-                GetExpressions(binaryExpression.Right as BinaryExpression, toExpressionList);               // Year == 2020
-                toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });                         // )
             }
 
             return toExpressionList;
