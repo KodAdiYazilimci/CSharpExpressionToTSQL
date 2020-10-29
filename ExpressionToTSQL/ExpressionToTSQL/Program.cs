@@ -61,6 +61,11 @@ namespace ExpressionToTSQL
             Expression<Func<SampleClass, bool>> expressionGreaterThanOrEqual = (x => x.Year >= 2020);
             expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body as BinaryExpression, expressionResults);
             rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            Expression<Func<SampleClass, bool>> expressionToLower = (x => x.Name.ToLower() == "foo");
+            expressionResults = GetExpressions(expressionToLower.Body as BinaryExpression, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
         }
 
         private static List<ExpressionResult> GetExpressions(BinaryExpression binaryExpression, List<ExpressionResult> toExpressionList)
@@ -80,16 +85,30 @@ namespace ExpressionToTSQL
             {
                 ExpressionResult expressionResult = new ExpressionResult();
 
-                MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
+                if (binaryExpression.Left is MemberExpression)
+                {
+                    MemberExpression memberExpression = binaryExpression.Left as MemberExpression;
 
-                if (memberExpression.Expression != null && memberExpression.Expression.Type == typeof(SampleClass))
-                {
-                    expressionResult.MemberName = memberExpression.Member.Name;                                               // Name
+                    if (memberExpression.Expression != null && memberExpression.Expression.Type == typeof(SampleClass))
+                    {
+                        expressionResult.MemberName = memberExpression.Member.Name;                                               // Name
+                    }
+                    else
+                    {
+                        expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
+                        expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
+                    }                    
                 }
-                else
+                else if (binaryExpression.Left is MethodCallExpression)
                 {
-                    expressionResult.MemberName = (memberExpression.Expression as MemberExpression).Member.Name;              // Name
-                    expressionResult.SubProperty = memberExpression.Member.Name;                                              // Name.Length (Name.Length == 3)
+                    MethodCallExpression methodCallExpression = binaryExpression.Left as MethodCallExpression;
+
+                    if (methodCallExpression.Method.Name == "ToLower")
+                    {
+                        expressionResult.MemberName = (methodCallExpression.Object as MemberExpression).Member.Name;    //Name                        
+                    }
+
+                    expressionResult.SubProperty = methodCallExpression.Method.Name;                                    // ToLower
                 }
 
                 expressionResult.Condition = binaryExpression.NodeType;                                      // ==
