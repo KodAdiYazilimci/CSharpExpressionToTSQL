@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace ExpressionToTSQL
@@ -10,6 +11,7 @@ namespace ExpressionToTSQL
         public ExpressionType Condition { get; set; }
         public string SubProperty { get; set; }
         public List<object> SubPropertyArguments { get; set; } = new List<object>();
+        public Type SubPropertyArgumentType { get; set; }
         public string Parentheses { get; set; }
     }
 }

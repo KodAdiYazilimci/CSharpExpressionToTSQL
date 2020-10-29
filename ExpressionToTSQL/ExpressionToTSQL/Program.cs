@@ -93,6 +93,29 @@ namespace ExpressionToTSQL
             expressionResults = GetExpressions(expressionEndsWith.Body, expressionResults);
             rawText = expressionResults.ConvertToRawText();
 
+            expressionResults.Clear();
+            List<string> stringListItems = new List<string>() { "foo", "goo", "too" };
+            Expression<Func<SampleClass, bool>> expressionStringListContains = (x => stringListItems.Contains(x.Name));
+            expressionResults = GetExpressions(expressionStringListContains, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            string[] stringArrayItems = new string[] { "foo", "goo", "too" };
+            Expression<Func<SampleClass, bool>> expressionStringArrayContains = (x => stringArrayItems.Contains(x.Name));
+            expressionResults = GetExpressions(expressionStringArrayContains, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            List<int> integerListItems = new List<int>() { 1990, 2000, 2010, 2020 };
+            Expression<Func<SampleClass, bool>> expressionIntegerListContains = (x => integerListItems.Contains(x.Year));
+            expressionResults = GetExpressions(expressionIntegerListContains, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
+
+            expressionResults.Clear();
+            int[] integerArrayItems = new int[] { 1990, 2000, 2010, 2020 };
+            Expression<Func<SampleClass, bool>> expressionIntegerArrayContains = (x => integerArrayItems.Contains(x.Year));
+            expressionResults = GetExpressions(expressionIntegerArrayContains, expressionResults);
+            rawText = expressionResults.ConvertToRawText();
         }
 
         private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList)
@@ -176,6 +199,72 @@ namespace ExpressionToTSQL
                 }
 
                 toExpressionList.Add(expressionResult);
+            }
+            else if (expression is LambdaExpression)
+            {
+                LambdaExpression lambdaExpression = expression as LambdaExpression;
+
+                if (lambdaExpression.Body is MethodCallExpression)
+                {
+                    MethodCallExpression methodCallExpression = lambdaExpression.Body as MethodCallExpression;
+
+                    expressionResult.SubProperty = methodCallExpression.Method.Name;
+
+                    if (methodCallExpression.Object is MemberExpression)
+                    {
+                        expressionResult.MemberName = (methodCallExpression.Arguments.FirstOrDefault() as MemberExpression).Member.Name;
+
+                        MemberExpression memberExpression = methodCallExpression.Object as MemberExpression;
+
+                        Expression subExpression = memberExpression.Expression;
+                        string expressionParameterKeyword = memberExpression.Member.Name;
+                        object subExpressionValue = (subExpression as ConstantExpression).Value;
+
+                        if (methodCallExpression.Object.Type == typeof(List<string>))
+                        {
+                            List<string> values = subExpressionValue.GetType().GetField(expressionParameterKeyword).GetValue(subExpressionValue) as List<string>;
+                            expressionResult.SubPropertyArgumentType = typeof(string);
+                            expressionResult.SubPropertyArguments.AddRange(values);
+                        }
+                        else if (methodCallExpression.Object.Type == typeof(List<int>))
+                        {
+                            List<int> values = subExpressionValue.GetType().GetField(expressionParameterKeyword).GetValue(subExpressionValue) as List<int>;
+                            expressionResult.SubPropertyArgumentType = typeof(int);
+                            expressionResult.SubPropertyArguments.AddRange(values.Select(x => x.ToString()).ToList());
+                        }
+                        toExpressionList.Add(expressionResult);
+                    }
+                    else if (methodCallExpression.Method.DeclaringType == typeof(Enumerable))
+                    {
+                        Expression parameterExpression = methodCallExpression.Arguments.FirstOrDefault(x => x is MemberExpression && (x as MemberExpression).Expression.NodeType == ExpressionType.Parameter);
+
+                        expressionResult.MemberName = (parameterExpression as MemberExpression).Member.Name;
+
+                        Expression constantExpression = methodCallExpression.Arguments.FirstOrDefault(x => x is MemberExpression && (x as MemberExpression).Expression.NodeType == ExpressionType.Constant);
+
+                        MemberExpression memberExpression = constantExpression as MemberExpression;
+
+                        string expressionParameterKeyword = memberExpression.Member.Name;
+
+                        if (memberExpression.Type == typeof(string[]))
+                        {
+                            object values = (memberExpression.Expression as ConstantExpression).Value;
+                            object items = values.GetType().GetField(expressionParameterKeyword).GetValue(values);
+
+                            expressionResult.SubPropertyArguments.AddRange((items as string[]));
+                            expressionResult.SubPropertyArgumentType = typeof(string);
+                        }
+                        else if(memberExpression.Type == typeof(int[]))
+                        {
+                            object values = (memberExpression.Expression as ConstantExpression).Value;
+                            object items = values.GetType().GetField(expressionParameterKeyword).GetValue(values);
+
+                            expressionResult.SubPropertyArguments.AddRange((items as int[]).Select(x=> x.ToString()).ToList());
+                            expressionResult.SubPropertyArgumentType = typeof(int);
+                        }
+                        toExpressionList.Add(expressionResult);
+                    }
+                }
             }
 
             return toExpressionList;
