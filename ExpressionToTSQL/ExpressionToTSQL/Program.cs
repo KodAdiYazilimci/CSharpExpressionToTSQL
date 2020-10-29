@@ -16,147 +16,147 @@ namespace ExpressionToTSQL
 
             Expression<Func<SampleClass, bool>> expression = (x => x.Name == "Foo");
             expressionResults = GetExpressions(expression.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expression = (x => !(x.Name == "Foo"));
             expressionResults = GetExpressions(expression.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithOr = (x => x.Name == "Foo" || x.Name == "Goo");
             expressionResults = GetExpressions(expressionWithOr.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithAnd = (x => x.Name == "Foo" && x.Name.Length == 3);
             expressionResults = GetExpressions(expressionWithAnd.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParentheses = (x => x.Name == "Foo" || (x.Name == "Goo" && x.Year == 2020));
             expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionWithParentheses = (x => !(x.Name == "Foo" || (x.Name == "Goo" && x.Year == 2020)));
             expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionWithParentheses = (x => (x.Name == "Foo" || x.Name == "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParentheses.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithNotEqual = (x => x.Name != "Foo");
             expressionResults = GetExpressions(expressionWithNotEqual.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionWithParenthesesNotEqual = (x => (x.Name != "Foo" && x.Name != "Goo") && x.Year == 2020);
             expressionResults = GetExpressions(expressionWithParenthesesNotEqual.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
+            rawText = expressionResults.ConvertToSql(); // Result: ( ( Name != Foo and Name != Goo) and Year = 2020) 
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThan = (x => x.Year < 2020);
             expressionResults = GetExpressions(expressionLessThan.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionLessThan = (x => !(x.Year < 2020));
             expressionResults = GetExpressions(expressionLessThan.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThan = (x => x.Year > 2020);
             expressionResults = GetExpressions(expressionGreaterThan.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionLessThanOrEqual = (x => x.Year <= 2020);
             expressionResults = GetExpressions(expressionLessThanOrEqual.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionGreaterThanOrEqual = (x => x.Year >= 2020);
             expressionResults = GetExpressions(expressionGreaterThanOrEqual.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionToLower = (x => x.Name.ToLower() == "foo");
             expressionResults = GetExpressions(expressionToLower.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionToLower = (x => !(x.Name.ToLower() == "foo"));
             expressionResults = GetExpressions(expressionToLower.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionToLower = (x => !(x.Name.ToLower() != "foo"));
             expressionResults = GetExpressions(expressionToLower.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionToUpper = (x => x.Name.ToUpper() == "FOO");
             expressionResults = GetExpressions(expressionToUpper.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionSubString = (x => x.Name.Substring(0, 3) == "Fooooo");
             expressionResults = GetExpressions(expressionSubString.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionStartsWith = (x => x.Name.StartsWith('F'));
             expressionResults = GetExpressions(expressionStartsWith.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionStartsWith = (x => !x.Name.StartsWith('F'));
             expressionResults = GetExpressions(expressionStartsWith.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             Expression<Func<SampleClass, bool>> expressionEndsWith = (x => x.Name.EndsWith("o"));
             expressionResults = GetExpressions(expressionEndsWith.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             expressionEndsWith = (x => !x.Name.EndsWith("o"));
             expressionResults = GetExpressions(expressionEndsWith.Body, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             List<string> stringListItems = new List<string>() { "foo", "goo", "too" };
             Expression<Func<SampleClass, bool>> expressionStringListContains = (x => stringListItems.Contains(x.Name));
             expressionResults = GetExpressions(expressionStringListContains, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             string[] stringArrayItems = new string[] { "foo", "goo", "too" };
             Expression<Func<SampleClass, bool>> expressionStringArrayContains = (x => stringArrayItems.Contains(x.Name));
             expressionResults = GetExpressions(expressionStringArrayContains, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             List<int> integerListItems = new List<int>() { 1990, 2000, 2010, 2020 };
             Expression<Func<SampleClass, bool>> expressionIntegerListContains = (x => integerListItems.Contains(x.Year));
             expressionResults = GetExpressions(expressionIntegerListContains, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             int[] integerArrayItems = new int[] { 1990, 2000, 2010, 2020 };
             Expression<Func<SampleClass, bool>> expressionIntegerArrayContains = (x => integerArrayItems.Contains(x.Year));
             expressionResults = GetExpressions(expressionIntegerArrayContains, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
 
             expressionResults.Clear();
             integerArrayItems = new int[] { 1, 2, 3 };
             expressionIntegerArrayContains = (x => !integerArrayItems.Contains(x.Year));
             expressionResults = GetExpressions(expressionIntegerArrayContains, expressionResults);
-            rawText = expressionResults.ConvertToRawText();
+            rawText = expressionResults.ConvertToSql();
         }
 
         private static List<ExpressionResult> GetExpressions(object expression, List<ExpressionResult> toExpressionList) //this method may be call recursive for sub-expressions
@@ -462,6 +462,133 @@ namespace ExpressionToTSQL
             }
 
             return sbText.ToString();
+        }
+
+        private static string ConvertToSql(this List<ExpressionResult> expressionResults)
+        {
+            StringBuilder sbText = new StringBuilder();
+
+            foreach (var exp in expressionResults)
+            {
+                if (!string.IsNullOrEmpty(exp.Parentheses))
+                {
+                    sbText.Append(exp.Parentheses);
+                }
+
+                if (!string.IsNullOrEmpty(exp.SubProperty))
+                {
+                    StringBuilder function = new StringBuilder();
+
+                    if (exp.SubProperty == nameof(String.Length))
+                    {
+                        function.Append("LEN(");
+                        function.Append(exp.MemberName);
+                        function.Append(")");
+                        function.Append(" ");
+                        function.Append(GetConditionChar(exp.Condition));
+                        function.Append(" ");
+                        function.Append(exp.Value);
+                    }
+                    else if (exp.SubProperty == nameof(String.ToLower))
+                    {
+                        function.Append("LOWER(");
+                        function.Append(exp.MemberName);
+                        function.Append(")");
+                        function.Append(" ");
+                        function.Append(GetConditionChar(exp.Condition));
+                        function.Append(" ");
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                        function.Append(exp.Value);
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                    }
+                    else if (exp.SubProperty == nameof(String.ToUpper))
+                    {
+                        function.Append("UPPER(");
+                        function.Append(exp.MemberName);
+                        function.Append(")");
+                        function.Append(" ");
+                        function.Append(GetConditionChar(exp.Condition));
+                        function.Append(" ");
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                        function.Append(exp.Value);
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                    }
+                    else if (exp.SubProperty == nameof(String.Substring))
+                    {
+                        function.Append("SUBSTRING(");
+                        function.Append(exp.MemberName);
+                        function.Append(",");
+                        function.Append(string.Join(',', exp.SubPropertyArguments));
+                        function.Append(")");
+                        function.Append(" ");
+                        function.Append(GetConditionChar(exp.Condition));
+                        function.Append(" ");
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                        function.Append(exp.Value);
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                    }
+                    else if (exp.SubProperty == nameof(String.StartsWith))
+                    {
+                        function.Append(exp.MemberName);
+                        function.Append(" LIKE '");
+                        function.Append(exp.Value);
+                        function.Append("'%");
+                    }
+                    else if (exp.SubProperty == nameof(String.EndsWith))
+                    {
+                        function.Append(exp.MemberName);
+                        function.Append(" LIKE '%");
+                        function.Append(exp.Value);
+                        function.Append("'");
+                    }
+                    else if (exp.SubProperty == nameof(String.Contains))
+                    {
+                        function.Append(exp.MemberName);
+                        function.Append(" IN (");
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                        function.Append(string.Join(exp.SubPropertyArgumentType == typeof(string) ? "','" : "", exp.SubPropertyArguments));
+                        if (exp.SubPropertyArgumentType == typeof(string))
+                            function.Append("'");
+                        function.Append(")");
+                    }
+
+                    sbText.Append(function.ToString());
+                }
+                else
+                {
+                    sbText.Append(exp.MemberName);
+                    sbText.Append(" ");
+                    sbText.Append(GetConditionChar(exp.Condition));
+                    sbText.Append(" ");
+                    sbText.Append(exp.Value);
+                }
+            }
+
+            return sbText.ToString();
+        }
+
+        private static string GetConditionChar(ExpressionType expressionType)
+        {
+            switch (expressionType)
+            {
+                case ExpressionType.Equal: return "=";
+                case ExpressionType.NotEqual: return "!=";
+                case ExpressionType.And: return "AND";
+                case ExpressionType.Or: return "OR";
+                case ExpressionType.LessThan: return "<";
+                case ExpressionType.GreaterThan: return ">";
+                case ExpressionType.LessThanOrEqual: return "<=";
+                case ExpressionType.GreaterThanOrEqual: return ">=";
+                default:
+                    return string.Empty;
+            }
         }
     }
 }
