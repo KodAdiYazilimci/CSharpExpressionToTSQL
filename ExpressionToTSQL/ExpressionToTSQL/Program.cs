@@ -164,6 +164,9 @@ namespace ExpressionToTSQL
             expressionIntegerArrayContains = (x => !integerArrayItems.Contains(x.Year));
             expressionResults = ExpressionUtil.GetExpressions<SampleEntity>(expressionIntegerArrayContains, expressionResults);
             rawText = expressionResults.ConvertToSql();
+
+            Console.WriteLine(rawText);
+            Console.ReadKey();
         }
     }
 }
