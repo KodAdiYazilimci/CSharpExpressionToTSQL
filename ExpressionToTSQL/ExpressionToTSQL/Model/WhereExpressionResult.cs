@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace ExpressionToTSQL.Model
 {
-    public class ExpressionResult
+    public class WhereExpressionResult
     {
         public string MemberName { get; set; }
         public string Value { get; set; }

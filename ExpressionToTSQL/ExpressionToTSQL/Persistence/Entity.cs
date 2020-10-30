@@ -30,5 +30,15 @@ namespace ExpressionToTSQL.Persistence
         /// Where the query statements will be stored
         /// </summary>
         public List<Expression<Func<T, bool>>> Expressions { get; set; } = new List<Expression<Func<T, bool>>>();
+
+        /// <summary>
+        /// Where OrderBy Asc statements will be stored
+        /// </summary>
+        public List<Expression<Func<T, object>>> OrderByAscendingExpressions { get; set; } = new List<Expression<Func<T, object>>>();
+
+        /// <summary>
+        /// Where OrderBy Desc statements will be stored
+        /// </summary>
+        public List<Expression<Func<T, object>>> OrderByDescendingExpressions { get; set; } = new List<Expression<Func<T, object>>>();
     }
 }

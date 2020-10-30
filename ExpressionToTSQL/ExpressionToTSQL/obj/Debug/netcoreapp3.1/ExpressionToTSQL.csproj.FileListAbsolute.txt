@@ -17,3 +17,4 @@ D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\net
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\netcoreapp3.1\runtimes\unix\lib\netcoreapp2.1\System.Data.SqlClient.dll
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\netcoreapp3.1\runtimes\win\lib\netcoreapp2.1\System.Data.SqlClient.dll
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.csproj.CopyComplete
+D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.csprojAssemblyReference.cache

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -13,11 +14,11 @@ namespace ExpressionToTSQL.Util
     public static class TextUtil
     {
         /// <summary>
-        /// Converts the expressions to meaningful results
+        /// Converts the where statement expressions to SQL text
         /// </summary>
         /// <param name="expressionResults">The result list of expressions which converted from lambda expressions</param>
         /// <returns></returns>
-        public static string ConvertToSql(this List<ExpressionResult> expressionResults)
+        public static string ConvertToSqlWhereStatement(this List<WhereExpressionResult> expressionResults)
         {
             StringBuilder sbText = new StringBuilder();
 
@@ -129,6 +130,33 @@ namespace ExpressionToTSQL.Util
             }
 
             return sbText.ToString();
+        }
+
+        /// <summary>
+        /// Converts the order by statement expressions to SQL text
+        /// </summary>
+        /// <param name="expressionResults"></param>
+        /// <returns></returns>
+        public static string ConvertToSqlOrderByStatement(this List<OrderByExpressionResult> expressionResults)
+        {
+            StringBuilder sbOrderBy = new StringBuilder();
+
+            if (expressionResults.Any())
+            {
+                for (int i = 0; i < expressionResults.Count; i++)
+                {
+                    sbOrderBy.Append(expressionResults[i].MemberName);
+                    sbOrderBy.Append(" ");
+                    sbOrderBy.Append(expressionResults[i].IsAscending ? "ASC" : "DESC");
+
+                    if (i < expressionResults.Count - 1)
+                    {
+                        sbOrderBy.Append(", ");
+                    }
+                }
+            }
+
+            return sbOrderBy.ToString();
         }
 
         /// <summary>

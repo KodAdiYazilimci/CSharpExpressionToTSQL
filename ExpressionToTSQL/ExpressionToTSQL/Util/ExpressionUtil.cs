@@ -12,13 +12,14 @@ namespace ExpressionToTSQL.Util
     public class ExpressionUtil
     {
         /// <summary>
-        /// Represents a meaningful result from expressions 
+        /// Represents a meaningful result from where expressions 
         /// </summary>
         /// <typeparam name="T">The type of the expression which belong to</typeparam>
         /// <param name="methodCallExpression">Expression which will resolve</param>
         /// <param name="toExpressionList">Where store the sub-expressions (generally same result object)</param>
+        /// <param name="expression">The expression of where statement</param>
         /// <returns></returns>
-        public static List<ExpressionResult> GetExpressions<T>(object expression, List<ExpressionResult> toExpressionList) //this method may be call recursive for sub-expressions
+        public static List<WhereExpressionResult> GetWhereExpressions<T>(object expression, List<WhereExpressionResult> toExpressionList) //this method may be call recursive for sub-expressions
         {
             if (expression is BinaryExpression) // x.Name == "Foo" // for equality statement of the property
             {
@@ -48,10 +49,10 @@ namespace ExpressionToTSQL.Util
                         if (unaryExpression.Operand is MethodCallExpression)
                         {
                             MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
-                            toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
-                            toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
+                            toExpressionList.Add(new WhereExpressionResult() { Parentheses = "!" });
+                            toExpressionList.Add(new WhereExpressionResult() { Parentheses = "(" });
                             toExpressionList.AddRange(Extract<T>(methodCallExpression));
-                            toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
+                            toExpressionList.Add(new WhereExpressionResult() { Parentheses = ")" });
                         }
                     }
                 }
@@ -65,18 +66,18 @@ namespace ExpressionToTSQL.Util
                     if (unaryExpression.Operand is MethodCallExpression) // Not(x.Name.StartsWith(F))  // for "not equal" statement of property which calls a method
                     {
                         MethodCallExpression methodCallExpression = unaryExpression.Operand as MethodCallExpression;
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = "!" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = "(" });
                         toExpressionList.AddRange(Extract<T>(methodCallExpression));
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = ")" });
                     }
                     else if (unaryExpression.Operand is BinaryExpression) // Not((x.Name == "Foo") // for "not equal" statement of property
                     {
                         BinaryExpression binaryExpression = unaryExpression.Operand as BinaryExpression;
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = "!" });
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = "(" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = "!" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = "(" });
                         toExpressionList.AddRange(Extract<T>(binaryExpression));
-                        toExpressionList.Add(new ExpressionResult() { Parentheses = ")" });
+                        toExpressionList.Add(new WhereExpressionResult() { Parentheses = ")" });
                     }
                 }
             }
@@ -85,18 +86,63 @@ namespace ExpressionToTSQL.Util
         }
 
         /// <summary>
+        /// Represents a meaningful result from order by expressions 
+        /// </summary>
+        /// <typeparam name="T">The type of the expression which belong to</typeparam>
+        /// <param name="expression">The expression of order by statement</param>
+        /// <returns></returns>
+        public static OrderByExpressionResult GetOrderByExpression<T>(object expression)
+        {
+            OrderByExpressionResult orderByExpressionResults = new OrderByExpressionResult();
+
+            if (expression is LambdaExpression)
+            {
+                LambdaExpression lambdaExpression = expression as LambdaExpression;
+
+                if (lambdaExpression.Body is MemberExpression)
+                {
+                    MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
+
+                    orderByExpressionResults.MemberName = memberExpression.Member.Name;
+                }
+            }
+            else if (expression is MemberExpression)
+            {
+                MemberExpression memberExpression = expression as MemberExpression;
+
+                if (memberExpression.NodeType == ExpressionType.MemberAccess)
+                    orderByExpressionResults.MemberName = memberExpression.Member.Name;
+                else if (memberExpression.NodeType == ExpressionType.Convert)
+                    orderByExpressionResults.MemberName = "";
+            }
+            else if (expression is UnaryExpression)
+            {
+                UnaryExpression unaryExpression = expression as UnaryExpression;
+
+                if (unaryExpression.Operand is MemberExpression)
+                {
+                    MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
+
+                    orderByExpressionResults.MemberName = memberExpression.Member.Name;
+                }
+            }
+
+            return orderByExpressionResults;
+        }
+
+        /// <summary>
         /// Extract a part of expression or sub-expression
         /// </summary>
         /// <typeparam name="T">The type of the expression which belong to</typeparam>
         /// <param name="methodCallExpression">The call of method expression which will resolve</param>
         /// <returns></returns>
-        private static List<ExpressionResult> Extract<T>(MethodCallExpression methodCallExpression)
+        private static List<WhereExpressionResult> Extract<T>(MethodCallExpression methodCallExpression)
         {
-            List<ExpressionResult> expressionResults = new List<ExpressionResult>();
+            List<WhereExpressionResult> expressionResults = new List<WhereExpressionResult>();
 
             if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Object is MemberExpression) //x.Name.StartsWith(F) or stringListItems.Contains(x.Name)
             {
-                ExpressionResult expressionResult = new ExpressionResult();
+                WhereExpressionResult expressionResult = new WhereExpressionResult();
                 expressionResult.SubProperty = methodCallExpression.Method.Name;
 
                 if (methodCallExpression.Object is MemberExpression)
@@ -146,7 +192,7 @@ namespace ExpressionToTSQL.Util
             }
             else if (methodCallExpression.NodeType == ExpressionType.Call && methodCallExpression.Method.DeclaringType == typeof(Enumerable)) //stringArrayItems.Contains(x.Name)
             {
-                ExpressionResult expressionResult = new ExpressionResult();
+                WhereExpressionResult expressionResult = new WhereExpressionResult();
                 expressionResult.SubProperty = methodCallExpression.Method.Name;
 
                 Expression parameterExpression = methodCallExpression.Arguments.FirstOrDefault(x => x is MemberExpression && (x as MemberExpression).Expression.NodeType == ExpressionType.Parameter);
@@ -188,11 +234,11 @@ namespace ExpressionToTSQL.Util
         /// <typeparam name="T">The type of the expression which belong to</typeparam>
         /// <param name="binaryExpression">The binary expression which will resolve</param>
         /// <returns></returns>
-        private static List<ExpressionResult> Extract<T>(BinaryExpression binaryExpression)
+        private static List<WhereExpressionResult> Extract<T>(BinaryExpression binaryExpression)
         {
-            List<ExpressionResult> expressionResults = new List<ExpressionResult>();
+            List<WhereExpressionResult> expressionResults = new List<WhereExpressionResult>();
 
-            ExpressionResult expressionResult = new ExpressionResult();
+            WhereExpressionResult expressionResult = new WhereExpressionResult();
 
             if (
                     binaryExpression.NodeType == ExpressionType.Equal
@@ -243,19 +289,19 @@ namespace ExpressionToTSQL.Util
             }
             else if (binaryExpression.NodeType == ExpressionType.OrElse)
             {
-                expressionResults.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions<T>(binaryExpression.Left as BinaryExpression, expressionResults);                // Name == Goo
-                expressionResults.Add(new ExpressionResult() { Condition = ExpressionType.Or });             // Or
-                GetExpressions<T>(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
-                expressionResults.Add(new ExpressionResult() { Parentheses = ")" });                         // )
+                expressionResults.Add(new WhereExpressionResult() { Parentheses = "(" });                         // (
+                GetWhereExpressions<T>(binaryExpression.Left as BinaryExpression, expressionResults);                // Name == Goo
+                expressionResults.Add(new WhereExpressionResult() { Condition = ExpressionType.Or });             // Or
+                GetWhereExpressions<T>(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
+                expressionResults.Add(new WhereExpressionResult() { Parentheses = ")" });                         // )
             }
             else if (binaryExpression.NodeType == ExpressionType.AndAlso)
             {
-                expressionResults.Add(new ExpressionResult() { Parentheses = "(" });                         // (
-                GetExpressions<T>(binaryExpression.Left as BinaryExpression, expressionResults);                // (Name == Foo Or || Name == Goo)
-                expressionResults.Add(new ExpressionResult() { Condition = ExpressionType.And });            // And
-                GetExpressions<T>(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
-                expressionResults.Add(new ExpressionResult() { Parentheses = ")" });                         // )
+                expressionResults.Add(new WhereExpressionResult() { Parentheses = "(" });                         // (
+                GetWhereExpressions<T>(binaryExpression.Left as BinaryExpression, expressionResults);                // (Name == Foo Or || Name == Goo)
+                expressionResults.Add(new WhereExpressionResult() { Condition = ExpressionType.And });            // And
+                GetWhereExpressions<T>(binaryExpression.Right as BinaryExpression, expressionResults);               // Year == 2020
+                expressionResults.Add(new WhereExpressionResult() { Parentheses = ")" });                         // )
             }
 
             return expressionResults;

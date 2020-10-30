@@ -1,4 +1,5 @@
 ﻿using ExpressionToTSQL.Entity;
+using ExpressionToTSQL.Other;
 using ExpressionToTSQL.Persistence;
 using ExpressionToTSQL.Util;
 
@@ -12,21 +13,20 @@ namespace ExpressionToTSQL
     {
         static void Main(string[] args)
         {
+            //Test.TestExpressions();
+
             Context context = new Context("connection string..");
-            SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).FetchFirst();
 
-            List<SampleEntity> sampleEntities = context.Samples.Where(x => x.Year < 2000).FetchList();
+            //SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).FetchFirst();
 
+            SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).SortByDesc(x => x.Year).FetchFirst();
 
-            if (sampleEntity != null)
-            {
-                Console.WriteLine($"Name:{ sampleEntity.Name }");
-                Console.WriteLine($"Year:{sampleEntity.Year}");
-            }
-            else
-                Console.WriteLine("No data fetched");
+            //List<SampleEntity> sampleEntities = context.Samples.Where(x => x.Year < 2000).FetchList();
 
-            Console.ReadKey();
+            List<SampleEntity> sortedEntities = context.Samples.Where(x => x.Year >= 1900)
+                                                               .SortBy(x => x.Name)
+                                                               .SortBy(x => x.Year)
+                                                               .FetchList();
         }
     }
 }

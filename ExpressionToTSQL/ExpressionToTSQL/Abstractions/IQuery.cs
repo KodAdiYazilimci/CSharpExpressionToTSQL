@@ -19,5 +19,15 @@ namespace ExpressionToTSQL.Abstractions
         /// Where the query statements will be stored
         /// </summary>
         List<Expression<Func<T, bool>>> Expressions { get; set; }
+
+        /// <summary>
+        /// Where OrderBy Asc statements will be stored
+        /// </summary>
+        List<Expression<Func<T, object>>> OrderByAscendingExpressions { get; set; }
+
+        /// <summary>
+        /// Where OrderBy Desc statements will be stored
+        /// </summary>
+        List<Expression<Func<T,object>>> OrderByDescendingExpressions { get; set; }
     }
 }

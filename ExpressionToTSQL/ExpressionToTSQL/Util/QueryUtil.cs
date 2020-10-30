@@ -16,7 +16,7 @@ namespace ExpressionToTSQL.Util
     public static class QueryExtensions
     {
         /// <summary>
-        /// Adds a statement to query
+        /// Adds a statement to query (can be applied multiple times)
         /// </summary>
         /// <typeparam name="T">The type of entity class</typeparam>
         /// <param name="query">The query will be attached to ownself</param>
@@ -47,13 +47,30 @@ namespace ExpressionToTSQL.Util
 
                 foreach (var statement in query.Expressions)
                 {
-                    List<ExpressionResult> expressions = new List<ExpressionResult>();
-                    expressions = ExpressionUtil.GetExpressions<T>(statement.Body, expressions);
+                    List<WhereExpressionResult> expressions = new List<WhereExpressionResult>();
+                    expressions = ExpressionUtil.GetWhereExpressions<T>(statement.Body, expressions);
 
-                    string whereStatement = TextUtil.ConvertToSql(expressions);
+                    string whereStatement = TextUtil.ConvertToSqlWhereStatement(expressions);
 
                     sbQuery.Append(whereStatement);
                 }
+            }
+
+            if (query.OrderByAscendingExpressions.Any() || query.OrderByDescendingExpressions.Any())
+            {
+                sbQuery.Append(" ORDER BY ");
+
+                var orderByExpressions = query.OrderByAscendingExpressions.Select(x => new OrderByExpressionResult()
+                {
+                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
+                    IsAscending = true
+                }).Union(query.OrderByDescendingExpressions.Select(x => new OrderByExpressionResult()
+                {
+                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
+                    IsAscending = false
+                })).ToList();
+
+                sbQuery.Append(TextUtil.ConvertToSqlOrderByStatement(orderByExpressions));
             }
 
             MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
@@ -80,19 +97,64 @@ namespace ExpressionToTSQL.Util
 
                 foreach (var statement in query.Expressions)
                 {
-                    List<ExpressionResult> expressions = new List<ExpressionResult>();
-                    expressions = ExpressionUtil.GetExpressions<T>(statement.Body, expressions);
+                    List<WhereExpressionResult> expressions = new List<WhereExpressionResult>();
+                    expressions = ExpressionUtil.GetWhereExpressions<T>(statement.Body, expressions);
 
-                    string whereStatement = TextUtil.ConvertToSql(expressions);
+                    string whereStatement = TextUtil.ConvertToSqlWhereStatement(expressions);
 
                     sbQuery.Append(whereStatement);
                 }
+            }
+
+            if (query.OrderByAscendingExpressions.Any() || query.OrderByDescendingExpressions.Any())
+            {
+                sbQuery.Append(" ORDER BY ");
+
+                var orderByExpressions = query.OrderByAscendingExpressions.Select(x => new OrderByExpressionResult()
+                {
+                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
+                    IsAscending = true
+                }).Union(query.OrderByDescendingExpressions.Select(x => new OrderByExpressionResult()
+                {
+                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
+                    IsAscending = false
+                })).ToList();
+
+                sbQuery.Append(TextUtil.ConvertToSqlOrderByStatement(orderByExpressions));
             }
 
             MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
 
             return dataProvider.GetList(sbQuery.ToString(), query.ConnectionString);
         }
-    }
 
+        /// <summary>
+        /// Sorts the data which defined property as ascending (can be applied multiple times)
+        /// </summary>
+        /// <typeparam name="T">The type of entity class</typeparam>
+        /// <param name="query">The query which applied to SQL</param>
+        /// <param name="expression">Sorting expression</param>
+        /// <returns></returns>
+        public static IQuery<T> SortBy<T>(this IQuery<T> query, Expression<Func<T, object>> expression)
+        {
+            query.OrderByAscendingExpressions.Add(expression);
+
+            return query;
+        }
+
+
+        /// <summary>
+        /// Sorts the data which defined property as descending (can be applied multiple times)
+        /// </summary>
+        /// <typeparam name="T">The type of entity class</typeparam>
+        /// <param name="query">The query which applied to SQL</param>
+        /// <param name="expression">Sorting expression</param>
+        /// <returns></returns>
+        public static IQuery<T> SortByDesc<T>(this IQuery<T> query, Expression<Func<T, object>> expression)
+        {
+            query.OrderByDescendingExpressions.Add(expression);
+
+            return query;
+        }
+    }
 }
