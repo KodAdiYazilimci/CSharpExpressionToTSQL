@@ -27,6 +27,8 @@ namespace ExpressionToTSQL
                                                                .SortBy(x => x.Name)
                                                                .SortBy(x => x.Year)
                                                                .FetchList();
+
+            List<SampleEntity> skippedAndTakenEntities = context.Samples.Skip(2).Take(3).FetchList();
         }
     }
 }

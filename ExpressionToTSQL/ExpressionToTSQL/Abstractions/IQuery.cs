@@ -29,5 +29,15 @@ namespace ExpressionToTSQL.Abstractions
         /// Where OrderBy Desc statements will be stored
         /// </summary>
         List<Expression<Func<T,object>>> OrderByDescendingExpressions { get; set; }
+
+        /// <summary>
+        /// The count of data which will fetch
+        /// </summary>
+        public int? TakeCount { get; set; }
+
+        /// <summary>
+        /// The skip row count of the data which will fetch
+        /// </summary>
+        public int? SkipCount { get; set; }
     }
 }

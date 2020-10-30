@@ -40,5 +40,15 @@ namespace ExpressionToTSQL.Persistence
         /// Where OrderBy Desc statements will be stored
         /// </summary>
         public List<Expression<Func<T, object>>> OrderByDescendingExpressions { get; set; } = new List<Expression<Func<T, object>>>();
+
+        /// <summary>
+        /// The count of data which will fetch
+        /// </summary>
+        public int? TakeCount { get; set; }
+
+        /// <summary>
+        /// The skip row count of the data which will fetch
+        /// </summary>
+        public int? SkipCount { get; set; }
     }
 }

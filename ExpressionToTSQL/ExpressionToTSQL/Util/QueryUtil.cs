@@ -38,7 +38,7 @@ namespace ExpressionToTSQL.Util
         {
             StringBuilder sbQuery = new StringBuilder();
 
-            sbQuery.Append("SELECT TOP 1 * FROM ");
+            sbQuery.Append($"SELECT TOP { (query.TakeCount.HasValue && query.TakeCount == 0 ? 0 : 1)} * FROM ");
             sbQuery.Append(typeof(T).Name);
 
             if (query.Expressions.Any())
@@ -88,7 +88,7 @@ namespace ExpressionToTSQL.Util
         {
             StringBuilder sbQuery = new StringBuilder();
 
-            sbQuery.Append("SELECT * FROM ");
+            sbQuery.Append($"SELECT { (query.TakeCount.HasValue ? "TOP " + query.TakeCount.Value.ToString() : "") } * FROM ");
             sbQuery.Append(typeof(T).Name);
 
             if (query.Expressions.Any())
@@ -123,6 +123,11 @@ namespace ExpressionToTSQL.Util
                 sbQuery.Append(TextUtil.ConvertToSqlOrderByStatement(orderByExpressions));
             }
 
+            if (query.SkipCount.HasValue && query.TakeCount.HasValue)
+            {
+                sbQuery.Append($" OFFSET {query.SkipCount.Value} ROWS FETCH NEXT {query.TakeCount.Value} ROWS ONLY");
+            }
+
             MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
 
             return dataProvider.GetList(sbQuery.ToString(), query.ConnectionString);
@@ -142,7 +147,6 @@ namespace ExpressionToTSQL.Util
             return query;
         }
 
-
         /// <summary>
         /// Sorts the data which defined property as descending (can be applied multiple times)
         /// </summary>
@@ -153,6 +157,34 @@ namespace ExpressionToTSQL.Util
         public static IQuery<T> SortByDesc<T>(this IQuery<T> query, Expression<Func<T, object>> expression)
         {
             query.OrderByDescendingExpressions.Add(expression);
+
+            return query;
+        }
+
+        /// <summary>
+        /// Defines a fetch limit for the data which will fetch
+        /// </summary>
+        /// <typeparam name="T">The type of entity class</typeparam>
+        /// <param name="query">The query which applied to SQL</param>
+        /// <param name="count">The count of data</param>
+        /// <returns></returns>
+        public static IQuery<T> Take<T>(this IQuery<T> query, int count)
+        {
+            query.TakeCount = count;
+
+            return query;
+        }
+
+        /// <summary>
+        /// Skips the data rows.
+        /// </summary>
+        /// <typeparam name="T">The type of entity class</typeparam>
+        /// <param name="query">The query which applied to SQL</param>
+        /// <param name="skip">The skip count of data</param>
+        /// <returns></returns>
+        public static IQuery<T> Skip<T>(this IQuery<T> query, int skip)
+        {
+            query.SkipCount = skip;
 
             return query;
         }
