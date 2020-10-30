@@ -12,7 +12,15 @@ namespace ExpressionToTSQL.Persistence
     /// <typeparam name="T">The type of entity class</typeparam>
     public class Entity<T> : IQuery<T>
     {
+        /// <summary>
+        /// The connection string which will be used for database operations
+        /// </summary>
         public string ConnectionString { get; set; }
+
+        /// <summary>
+        /// Delegates of the table in database. Also known as DbSet<T> in Entity Framework
+        /// </summary>
+        /// <param name="connectionString">The connection string which will be used for database operations</param>
         public Entity(string connectionString)
         {
             ConnectionString = connectionString;
