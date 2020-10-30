@@ -2,88 +2,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
 namespace ExpressionToTSQL.Util
 {
+    /// <summary>
+    /// The tools of text which will use for queries
+    /// </summary>
     public static class TextUtil
     {
-        public static string ConvertToRawText(this List<ExpressionResult> expressionResults)
-        {
-            StringBuilder sbText = new StringBuilder();
-
-            foreach (var exp in expressionResults)
-            {
-                if (!string.IsNullOrEmpty(exp.Parentheses))
-                {
-                    sbText.Append(exp.Parentheses);
-                }
-
-                if (!sbText.ToString().EndsWith(" "))
-                    sbText.Append(" ");
-
-                if (!string.IsNullOrEmpty(exp.MemberName))
-                {
-                    sbText.Append(exp.MemberName);
-                }
-
-                if (!string.IsNullOrEmpty(exp.SubProperty))
-                {
-                    sbText.Append(".");
-                    sbText.Append(exp.SubProperty);
-
-                    if (exp.SubPropertyArguments.Any())
-                    {
-                        sbText.Append("(");
-                        sbText.Append(String.Join(',', exp.SubPropertyArguments));
-                        sbText.Append(")");
-                    }
-                }
-
-                if (!sbText.ToString().EndsWith(" "))
-                    sbText.Append(" ");
-
-                switch (exp.Condition)
-                {
-                    case ExpressionType.Equal:
-                        sbText.Append("=");
-                        break;
-                    case ExpressionType.NotEqual:
-                        sbText.Append("!=");
-                        break;
-                    case ExpressionType.And:
-                        sbText.Append("and");
-                        break;
-                    case ExpressionType.Or:
-                        sbText.Append("or");
-                        break;
-                    case ExpressionType.LessThan:
-                        sbText.Append("<");
-                        break;
-                    case ExpressionType.GreaterThan:
-                        sbText.Append(">");
-                        break;
-                    case ExpressionType.LessThanOrEqual:
-                        sbText.Append("<=");
-                        break;
-                    case ExpressionType.GreaterThanOrEqual:
-                        sbText.Append(">=");
-                        break;
-                    default:
-                        break;
-                }
-
-                if (!sbText.ToString().EndsWith(" "))
-                    sbText.Append(" ");
-
-                sbText.Append(exp.Value);
-            }
-
-            return sbText.ToString();
-        }
-
+        /// <summary>
+        /// Converts the expressions to meaningful results
+        /// </summary>
+        /// <param name="expressionResults">The result list of expressions which converted from lambda expressions</param>
+        /// <returns></returns>
         public static string ConvertToSql(this List<ExpressionResult> expressionResults)
         {
             StringBuilder sbText = new StringBuilder();
@@ -198,6 +131,11 @@ namespace ExpressionToTSQL.Util
             return sbText.ToString();
         }
 
+        /// <summary>
+        /// Converts expression operators to Sql operators
+        /// </summary>
+        /// <param name="expressionType"></param>
+        /// <returns></returns>
         private static string GetConditionChar(ExpressionType expressionType)
         {
             switch (expressionType)

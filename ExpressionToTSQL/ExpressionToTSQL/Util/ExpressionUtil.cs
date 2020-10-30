@@ -1,15 +1,23 @@
 ﻿using ExpressionToTSQL.Model;
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace ExpressionToTSQL.Util
 {
+    /// <summary>
+    /// The examination operations of expressions
+    /// </summary>
     public class ExpressionUtil
     {
+        /// <summary>
+        /// Represents a meaningful result from expressions 
+        /// </summary>
+        /// <typeparam name="T">The type of the expression which belong to</typeparam>
+        /// <param name="methodCallExpression">Expression which will resolve</param>
+        /// <param name="toExpressionList">Where store the sub-expressions (generally same result object)</param>
+        /// <returns></returns>
         public static List<ExpressionResult> GetExpressions<T>(object expression, List<ExpressionResult> toExpressionList) //this method may be call recursive for sub-expressions
         {
             if (expression is BinaryExpression) // x.Name == "Foo" // for equality statement of the property
@@ -76,6 +84,12 @@ namespace ExpressionToTSQL.Util
             return toExpressionList;
         }
 
+        /// <summary>
+        /// Extract a part of expression or sub-expression
+        /// </summary>
+        /// <typeparam name="T">The type of the expression which belong to</typeparam>
+        /// <param name="methodCallExpression">The call of method expression which will resolve</param>
+        /// <returns></returns>
         private static List<ExpressionResult> Extract<T>(MethodCallExpression methodCallExpression)
         {
             List<ExpressionResult> expressionResults = new List<ExpressionResult>();
@@ -168,6 +182,12 @@ namespace ExpressionToTSQL.Util
             return expressionResults;
         }
 
+        /// <summary>
+        /// Extract a part of expression or sub-expression
+        /// </summary>
+        /// <typeparam name="T">The type of the expression which belong to</typeparam>
+        /// <param name="binaryExpression">The binary expression which will resolve</param>
+        /// <returns></returns>
         private static List<ExpressionResult> Extract<T>(BinaryExpression binaryExpression)
         {
             List<ExpressionResult> expressionResults = new List<ExpressionResult>();
