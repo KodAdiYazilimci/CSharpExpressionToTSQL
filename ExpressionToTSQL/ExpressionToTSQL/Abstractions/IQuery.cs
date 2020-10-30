@@ -1,6 +1,9 @@
-﻿using System;
+﻿using ExpressionToTSQL.Model;
+
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace ExpressionToTSQL.Abstractions
 {
@@ -16,19 +19,29 @@ namespace ExpressionToTSQL.Abstractions
         string ConnectionString { get; set; }
 
         /// <summary>
+        /// The Select body of query
+        /// </summary>
+        string FromStatement { get; set; }
+
+        /// <summary>
         /// Where the query statements will be stored
         /// </summary>
-        List<Expression<Func<T, bool>>> Expressions { get; set; }
+        StringBuilder WhereStatement { get; set; }
 
         /// <summary>
         /// Where OrderBy Asc statements will be stored
         /// </summary>
-        List<Expression<Func<T, object>>> OrderByAscendingExpressions { get; set; }
+        StringBuilder OrderByAscendingStatement { get; set; }
 
         /// <summary>
         /// Where OrderBy Desc statements will be stored
         /// </summary>
-        List<Expression<Func<T,object>>> OrderByDescendingExpressions { get; set; }
+        StringBuilder OrderByDescendingStatement { get; set; }
+
+        /// <summary>
+        /// Join body of query
+        /// </summary>
+        StringBuilder JoinStatement { get; set; }
 
         /// <summary>
         /// The count of data which will fetch

@@ -1,5 +1,6 @@
 ﻿using ExpressionToTSQL.Abstractions;
 using ExpressionToTSQL.Model;
+using ExpressionToTSQL.Persistence;
 using ExpressionToTSQL.Provider;
 
 using System;
@@ -24,7 +25,30 @@ namespace ExpressionToTSQL.Util
         /// <returns></returns>
         public static IQuery<T> Where<T>(this IQuery<T> query, Expression<Func<T, bool>> expression)
         {
-            query.Expressions.Add(expression);
+            List<WhereExpressionResult> expressionResults = new List<WhereExpressionResult>();
+            expressionResults = ExpressionUtil.GetWhereExpressions<T>(expression.Body, expressionResults);
+
+            if (expressionResults.Any())
+            {
+                if (query.WhereStatement.Length > 0)
+                {
+                    query.WhereStatement.Append(" AND ");
+                }
+                if (expressionResults.Any(x => !string.IsNullOrEmpty(x.SubProperty)))
+                {
+
+                    string memberName = typeof(T).Name.ToLower() + "." + expressionResults.FirstOrDefault(x => !string.IsNullOrEmpty(x.MemberName)).MemberName;
+                    expressionResults.FirstOrDefault(x => !string.IsNullOrEmpty(x.MemberName)).MemberName = memberName;
+
+                    query.WhereStatement.Append(TextUtil.ConvertToSqlWhereStatement(expressionResults));
+                }
+                else
+                {
+                    query.WhereStatement.Append(typeof(T).Name.ToLower());
+                    query.WhereStatement.Append(".");
+                    query.WhereStatement.Append(TextUtil.ConvertToSqlWhereStatement(expressionResults));
+                }
+            }
             return query;
         }
 
@@ -38,40 +62,15 @@ namespace ExpressionToTSQL.Util
         {
             StringBuilder sbQuery = new StringBuilder();
 
-            sbQuery.Append($"SELECT TOP { (query.TakeCount.HasValue && query.TakeCount == 0 ? 0 : 1)} * FROM ");
-            sbQuery.Append(typeof(T).Name);
-
-            if (query.Expressions.Any())
-            {
-                sbQuery.Append(" WHERE ");
-
-                foreach (var statement in query.Expressions)
-                {
-                    List<WhereExpressionResult> expressions = new List<WhereExpressionResult>();
-                    expressions = ExpressionUtil.GetWhereExpressions<T>(statement.Body, expressions);
-
-                    string whereStatement = TextUtil.ConvertToSqlWhereStatement(expressions);
-
-                    sbQuery.Append(whereStatement);
-                }
-            }
-
-            if (query.OrderByAscendingExpressions.Any() || query.OrderByDescendingExpressions.Any())
-            {
-                sbQuery.Append(" ORDER BY ");
-
-                var orderByExpressions = query.OrderByAscendingExpressions.Select(x => new OrderByExpressionResult()
-                {
-                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
-                    IsAscending = true
-                }).Union(query.OrderByDescendingExpressions.Select(x => new OrderByExpressionResult()
-                {
-                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
-                    IsAscending = false
-                })).ToList();
-
-                sbQuery.Append(TextUtil.ConvertToSqlOrderByStatement(orderByExpressions));
-            }
+            sbQuery.Append($"SELECT TOP 1 * ");
+            sbQuery.Append(query.FromStatement);
+            sbQuery.Append(query.JoinStatement);
+            sbQuery.Append(" WHERE ");
+            sbQuery.Append(query.WhereStatement);
+            sbQuery.Append(" ORDER BY ");
+            sbQuery.Append(query.OrderByAscendingStatement);
+            sbQuery.Append(" ");
+            sbQuery.Append(query.OrderByDescendingStatement);
 
             MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
 
@@ -88,40 +87,15 @@ namespace ExpressionToTSQL.Util
         {
             StringBuilder sbQuery = new StringBuilder();
 
-            sbQuery.Append($"SELECT { (query.TakeCount.HasValue ? "TOP " + query.TakeCount.Value.ToString() : "") } * FROM ");
-            sbQuery.Append(typeof(T).Name);
-
-            if (query.Expressions.Any())
-            {
-                sbQuery.Append(" WHERE ");
-
-                foreach (var statement in query.Expressions)
-                {
-                    List<WhereExpressionResult> expressions = new List<WhereExpressionResult>();
-                    expressions = ExpressionUtil.GetWhereExpressions<T>(statement.Body, expressions);
-
-                    string whereStatement = TextUtil.ConvertToSqlWhereStatement(expressions);
-
-                    sbQuery.Append(whereStatement);
-                }
-            }
-
-            if (query.OrderByAscendingExpressions.Any() || query.OrderByDescendingExpressions.Any())
-            {
-                sbQuery.Append(" ORDER BY ");
-
-                var orderByExpressions = query.OrderByAscendingExpressions.Select(x => new OrderByExpressionResult()
-                {
-                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
-                    IsAscending = true
-                }).Union(query.OrderByDescendingExpressions.Select(x => new OrderByExpressionResult()
-                {
-                    MemberName = ExpressionUtil.GetOrderByExpression<T>(x.Body).MemberName,
-                    IsAscending = false
-                })).ToList();
-
-                sbQuery.Append(TextUtil.ConvertToSqlOrderByStatement(orderByExpressions));
-            }
+            sbQuery.Append($"SELECT { (query.TakeCount.HasValue ? "TOP " + query.TakeCount.Value.ToString() : "") } * ");
+            sbQuery.Append(query.FromStatement);
+            sbQuery.Append(query.JoinStatement);
+            sbQuery.Append(" WHERE ");
+            sbQuery.Append(query.WhereStatement);
+            sbQuery.Append(" ORDER BY ");
+            sbQuery.Append(query.OrderByAscendingStatement);
+            sbQuery.Append(" ");
+            sbQuery.Append(query.OrderByDescendingStatement);
 
             if (query.SkipCount.HasValue && query.TakeCount.HasValue)
             {
@@ -142,7 +116,16 @@ namespace ExpressionToTSQL.Util
         /// <returns></returns>
         public static IQuery<T> SortBy<T>(this IQuery<T> query, Expression<Func<T, object>> expression)
         {
-            query.OrderByAscendingExpressions.Add(expression);
+            if (query.OrderByAscendingStatement.Length > 0)
+            {
+                query.OrderByAscendingStatement.Append(", ");
+            }
+
+            var orderByExpressions = ExpressionUtil.GetOrderByExpression<T>(expression.Body);
+
+            string orderByStatement = typeof(T).Name.ToLower() + "." + orderByExpressions.MemberName + " ASC";
+
+            query.OrderByAscendingStatement.Append(orderByStatement);
 
             return query;
         }
@@ -156,7 +139,15 @@ namespace ExpressionToTSQL.Util
         /// <returns></returns>
         public static IQuery<T> SortByDesc<T>(this IQuery<T> query, Expression<Func<T, object>> expression)
         {
-            query.OrderByDescendingExpressions.Add(expression);
+            if (query.OrderByDescendingStatement.Length > 0)
+            {
+                query.OrderByDescendingStatement.Append(", ");
+            }
+
+            var orderByExpressions = ExpressionUtil.GetOrderByExpression<T>(expression.Body);
+
+            query.OrderByDescendingStatement.Append(orderByExpressions.MemberName);
+            query.OrderByDescendingStatement.Append(" DESC");
 
             return query;
         }
@@ -187,6 +178,43 @@ namespace ExpressionToTSQL.Util
             query.SkipCount = skip;
 
             return query;
+        }
+
+        /// <summary>
+        /// Generates a relationship query between two table
+        /// </summary>
+        /// <typeparam name="T">The type of left table</typeparam>
+        /// <typeparam name="TOther">The type of right table</typeparam>
+        /// <param name="leftTableColumn">The column of left table</param>
+        /// <param name="rightOtherTableColumn">The column of right table</param>
+        /// <returns></returns>
+        public static IQuery<TOther> JoinWith<T, TOther>(this IQuery<T> query, Expression<Func<T, object>> leftTableColumn, Expression<Func<TOther, object>> rightOtherTableColumn)
+        {
+            IQuery<TOther> result = Activator.CreateInstance(typeof(Entity<TOther>), args: query.ConnectionString) as Entity<TOther>;
+
+            result.FromStatement += query.FromStatement;
+            result.WhereStatement.Append(query.WhereStatement);
+            result.ConnectionString = query.ConnectionString;
+
+            JoinExpressionResult joinExpression = ExpressionUtil.GetJoinExpression<TOther>(rightOtherTableColumn.Body);
+            joinExpression.FromColumnName = ExpressionUtil.GetJoinExpression<T>(leftTableColumn).ColumnName;
+
+            query.JoinStatement.Append(" JOIN ");
+            query.JoinStatement.Append(joinExpression.TableName);
+            query.JoinStatement.Append(" ");
+            query.JoinStatement.Append(joinExpression.TableName.ToLower());
+            query.JoinStatement.Append(" ON ");
+            query.JoinStatement.Append(typeof(T).Name.ToLower());
+            query.JoinStatement.Append(".");
+            query.JoinStatement.Append(joinExpression.FromColumnName);
+            query.JoinStatement.Append(" = ");
+            query.JoinStatement.Append(joinExpression.TableName.ToLower());
+            query.JoinStatement.Append(".");
+            query.JoinStatement.Append(joinExpression.ColumnName);
+
+            result.JoinStatement.Append(query.JoinStatement);
+
+            return result;
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using ExpressionToTSQL.Abstractions;
+using ExpressionToTSQL.Model;
 
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Text;
 
 namespace ExpressionToTSQL.Persistence
 {
@@ -27,21 +29,6 @@ namespace ExpressionToTSQL.Persistence
         }
 
         /// <summary>
-        /// Where the query statements will be stored
-        /// </summary>
-        public List<Expression<Func<T, bool>>> Expressions { get; set; } = new List<Expression<Func<T, bool>>>();
-
-        /// <summary>
-        /// Where OrderBy Asc statements will be stored
-        /// </summary>
-        public List<Expression<Func<T, object>>> OrderByAscendingExpressions { get; set; } = new List<Expression<Func<T, object>>>();
-
-        /// <summary>
-        /// Where OrderBy Desc statements will be stored
-        /// </summary>
-        public List<Expression<Func<T, object>>> OrderByDescendingExpressions { get; set; } = new List<Expression<Func<T, object>>>();
-
-        /// <summary>
         /// The count of data which will fetch
         /// </summary>
         public int? TakeCount { get; set; }
@@ -50,5 +37,30 @@ namespace ExpressionToTSQL.Persistence
         /// The skip row count of the data which will fetch
         /// </summary>
         public int? SkipCount { get; set; }
+
+        /// <summary>
+        /// Where the query statements will be stored
+        /// </summary>
+        public StringBuilder WhereStatement { get; set; } = new StringBuilder();
+
+        /// <summary>
+        /// Where OrderBy Asc statements will be stored
+        /// </summary>
+        public StringBuilder OrderByAscendingStatement { get; set; } = new StringBuilder();
+
+        /// <summary>
+        /// Where OrderBy Desc statements will be stored
+        /// </summary>
+        public StringBuilder OrderByDescendingStatement { get; set; } = new StringBuilder();
+
+        /// <summary>
+        /// Join body of query
+        /// </summary>
+        public StringBuilder JoinStatement { get; set; } = new StringBuilder();
+
+        /// <summary>
+        /// The Select body of query
+        /// </summary>
+        public string FromStatement { get; set; }
     }
 }

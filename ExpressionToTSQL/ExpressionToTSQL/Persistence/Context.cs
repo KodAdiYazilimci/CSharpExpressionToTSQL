@@ -25,7 +25,11 @@ namespace ExpressionToTSQL.Persistence
         {
             get
             {
-                return new Entity<SampleEntity>(_connectionString);
+                Entity<SampleEntity> entity = new Entity<SampleEntity>(_connectionString);
+
+                entity.FromStatement = " FROM SampleEntity sampleEntity";
+
+                return entity;
             }
         }
     }

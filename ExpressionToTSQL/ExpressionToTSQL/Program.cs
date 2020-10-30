@@ -19,16 +19,30 @@ namespace ExpressionToTSQL
 
             //SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).FetchFirst();
 
-            SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).SortByDesc(x => x.Year).FetchFirst();
+            //SampleEntity sampleEntity = context.Samples.Where(x => x.Year == 2000).SortByDesc(x => x.Year).FetchFirst();
 
             //List<SampleEntity> sampleEntities = context.Samples.Where(x => x.Year < 2000).FetchList();
 
-            List<SampleEntity> sortedEntities = context.Samples.Where(x => x.Year >= 1900)
-                                                               .SortBy(x => x.Name)
-                                                               .SortBy(x => x.Year)
-                                                               .FetchList();
+            //List<SampleEntity> sampleEntities = context.Samples.Where(x => x.Year < 2000).SortBy(x => x.Name).FetchList();
 
-            List<SampleEntity> skippedAndTakenEntities = context.Samples.Skip(2).Take(3).FetchList();
+            //List<SampleEntity> sortedEntities = context.Samples.Where(x => x.Year >= 1900)
+            //                                                   .SortBy(x => x.Name)
+            //                                                   .SortBy(x => x.Year)
+            //                                                   .SortByDesc(x => x.Year)
+            //                                                   .FetchList();
+
+            //List<SampleEntity> skippedAndTakenEntities = context.Samples.Skip(2).Take(3).FetchList();
+
+
+            var joinedEntities = context.Samples
+                                        .Where(x => x.Year > 2000)
+                                        .SortByDesc(x => x.Year)
+                                        .JoinWith<SampleEntity, OtherSampleEntity>(sampleEntity => sampleEntity.Id, otherEntity => otherEntity.SampleEntityId)
+                                        .Where(x => !string.IsNullOrEmpty(x.Name))
+                                        .SortBy(x => x.Name)
+                                        .FetchList();
+
+            // TO DO: Entities will be merged.
         }
     }
 }

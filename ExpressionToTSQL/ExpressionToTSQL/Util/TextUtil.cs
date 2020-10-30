@@ -112,6 +112,12 @@ namespace ExpressionToTSQL.Util
                             function.Append("'");
                         function.Append(")");
                     }
+                    else if(exp.SubProperty == nameof(String.IsNullOrEmpty))
+                    {
+                        function.Append(exp.MemberName);
+                        function.Append(" = '");
+                        function.Append("'");
+                    }
 
                     sbText.Append(function.ToString());
                 }

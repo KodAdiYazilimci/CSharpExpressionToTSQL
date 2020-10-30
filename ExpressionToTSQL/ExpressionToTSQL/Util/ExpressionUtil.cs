@@ -131,6 +131,71 @@ namespace ExpressionToTSQL.Util
         }
 
         /// <summary>
+        /// Generates a relationship query between two table
+        /// </summary>
+        /// <typeparam name="TRight">The type of right table</typeparam>
+        /// <param name="rightExpression">The expression of right table</param>
+        /// <returns></returns>
+        public static JoinExpressionResult GetJoinExpression<TRight>(object rightExpression)
+        {
+            JoinExpressionResult joinExpressionResult = new JoinExpressionResult();
+
+            if (rightExpression is LambdaExpression)
+            {
+                LambdaExpression lambdaExpression = rightExpression as LambdaExpression;
+
+                if (lambdaExpression.Body is MemberExpression)
+                {
+                    MemberExpression memberExpression = lambdaExpression.Body as MemberExpression;
+
+                    joinExpressionResult.TableName = typeof(TRight).Name;
+                    joinExpressionResult.ColumnName = memberExpression.Member.Name;
+                }
+                else if(lambdaExpression.Body is UnaryExpression)
+                {
+                    UnaryExpression unaryExpression = lambdaExpression.Body as UnaryExpression;
+
+                    if (unaryExpression.Operand is MemberExpression)
+                    {
+                        MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
+
+                        joinExpressionResult.TableName = typeof(TRight).Name;
+                        joinExpressionResult.ColumnName = memberExpression.Member.Name;
+                    }
+                }
+            }
+            else if (rightExpression is MemberExpression)
+            {
+                MemberExpression memberExpression = rightExpression as MemberExpression;
+
+                if (memberExpression.NodeType == ExpressionType.MemberAccess)
+                {
+                    joinExpressionResult.TableName = typeof(TRight).Name;
+                    joinExpressionResult.ColumnName = memberExpression.Member.Name;
+                }
+                else if (memberExpression.NodeType == ExpressionType.Convert)
+                {
+                    joinExpressionResult.TableName = typeof(TRight).Name;
+                    joinExpressionResult.ColumnName = "";
+                }
+            }
+            else if (rightExpression is UnaryExpression)
+            {
+                UnaryExpression unaryExpression = rightExpression as UnaryExpression;
+
+                if (unaryExpression.Operand is MemberExpression)
+                {
+                    MemberExpression memberExpression = unaryExpression.Operand as MemberExpression;
+
+                    joinExpressionResult.TableName = typeof(TRight).Name;
+                    joinExpressionResult.ColumnName = memberExpression.Member.Name;
+                }
+            }
+
+            return joinExpressionResult;
+        }
+
+        /// <summary>
         /// Extract a part of expression or sub-expression
         /// </summary>
         /// <typeparam name="T">The type of the expression which belong to</typeparam>
@@ -220,7 +285,15 @@ namespace ExpressionToTSQL.Util
 
                     expressionResult.SubPropertyArguments.AddRange((items as int[]).Select(x => x.ToString()).ToList());
                     expressionResult.SubPropertyArgumentType = typeof(int);
-                }
+                }             
+
+                expressionResults.Add(expressionResult);
+            }
+            else if (methodCallExpression.NodeType == ExpressionType.Call)
+            {
+                WhereExpressionResult expressionResult = new WhereExpressionResult();
+                expressionResult.SubProperty = methodCallExpression.Method.Name;
+                expressionResult.MemberName = (methodCallExpression.Arguments.FirstOrDefault() as MemberExpression).Member.Name;
 
                 expressionResults.Add(expressionResult);
             }
