@@ -4,7 +4,6 @@ D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\net
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\netcoreapp3.1\ExpressionToTSQL.runtimeconfig.dev.json
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\netcoreapp3.1\ExpressionToTSQL.dll
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\bin\Debug\netcoreapp3.1\ExpressionToTSQL.pdb
-D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.csprojAssemblyReference.cache
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.AssemblyInfoInputs.cache
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.AssemblyInfo.cs
 D:\GitHub\CSharpExpressionToTSQL\ExpressionToTSQL\ExpressionToTSQL\obj\Debug\netcoreapp3.1\ExpressionToTSQL.csproj.CoreCompileInputs.cache

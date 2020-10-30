@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace ExpressionToTSQL
+namespace ExpressionToTSQL.Model
 {
     public class ExpressionResult
     {
