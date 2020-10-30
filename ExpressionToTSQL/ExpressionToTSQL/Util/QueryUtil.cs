@@ -32,9 +32,9 @@ namespace ExpressionToTSQL.Util
         /// Fetches 1 row data from database
         /// </summary>
         /// <typeparam name="T">The type of entity class</typeparam>
-        /// <param name="query"></param>
+        /// <param name="query">The query which applied to SQL</param>
         /// <returns></returns>
-        public static T FirstOrDefault<T>(this IQuery<T> query)
+        public static T FetchFirst<T>(this IQuery<T> query)
         {
             StringBuilder sbQuery = new StringBuilder();
 
@@ -59,6 +59,39 @@ namespace ExpressionToTSQL.Util
             MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
 
             return dataProvider.Get(sbQuery.ToString(), query.ConnectionString);
+        }
+
+        /// <summary>
+        /// Fetches all row data which matches to statements from database
+        /// </summary>
+        /// <typeparam name="T">The type of entity class</typeparam>
+        /// <param name="query">The query which applied to SQL</param>
+        /// <returns></returns>
+        public static List<T> FetchList<T>(this IQuery<T> query)
+        {
+            StringBuilder sbQuery = new StringBuilder();
+
+            sbQuery.Append("SELECT * FROM ");
+            sbQuery.Append(typeof(T).Name);
+
+            if (query.Expressions.Any())
+            {
+                sbQuery.Append(" WHERE ");
+
+                foreach (var statement in query.Expressions)
+                {
+                    List<ExpressionResult> expressions = new List<ExpressionResult>();
+                    expressions = ExpressionUtil.GetExpressions<T>(statement.Body, expressions);
+
+                    string whereStatement = TextUtil.ConvertToSql(expressions);
+
+                    sbQuery.Append(whereStatement);
+                }
+            }
+
+            MsSQLDataProvider<T> dataProvider = new MsSQLDataProvider<T>();
+
+            return dataProvider.GetList(sbQuery.ToString(), query.ConnectionString);
         }
     }
 

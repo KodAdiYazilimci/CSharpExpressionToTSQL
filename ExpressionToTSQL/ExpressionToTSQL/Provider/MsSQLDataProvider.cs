@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -19,6 +20,39 @@ namespace ExpressionToTSQL.Provider
         public T Get(string query, string connectionString)
         {
             T result = Activator.CreateInstance<T>();
+
+            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            {
+                SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(query, sqlConnection);
+                DataTable dataTable = new DataTable();
+                sqlDataAdapter.Fill(dataTable);
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    var properties = typeof(T).GetProperties();
+
+                    foreach (var property in properties)
+                    {
+                        if (row[property.Name] != null)
+                        {
+                            property.SetValue(result, row[property.Name]);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Fetches all entities which match to statement(s) from database
+        /// </summary>
+        /// <param name="query">The SQL query which will using via fetching data</param>
+        /// <param name="connectionString">The MS SQL Server connection string</param>
+        /// <returns></returns>
+        public List<T> GetList(string query, string connectionString)
+        {
+            List<T> result = Activator.CreateInstance<List<T>>();
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
