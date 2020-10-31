@@ -240,6 +240,11 @@ namespace ExpressionToTSQL.Util
 
             result.FromStatement += query.FromStatement;
             result.WhereStatement.Append(query.WhereStatement);
+            result.JoinStatement.Append(query.JoinStatement);
+            result.OrderByAscendingStatement.Append(query.OrderByAscendingStatement);
+            result.OrderByDescendingStatement.Append(query.OrderByDescendingStatement);
+            result.SkipCount = query.SkipCount;
+            result.TakeCount = query.TakeCount;            
 
             JoinExpressionResult joinExpression = ExpressionUtil.GetJoinExpression<TOther>(rightOtherTableColumn.Body);
             joinExpression.FromColumnName = ExpressionUtil.GetJoinExpression<T>(leftTableColumn).ColumnName;
@@ -277,6 +282,10 @@ namespace ExpressionToTSQL.Util
             result.FromStatement += query.FromStatement;
             result.WhereStatement.Append(query.WhereStatement);
             result.JoinStatement.Append(query.JoinStatement);
+            result.OrderByAscendingStatement.Append(query.OrderByAscendingStatement);
+            result.OrderByDescendingStatement.Append(query.OrderByDescendingStatement);
+            result.SkipCount = query.SkipCount;
+            result.TakeCount = query.TakeCount;
 
             result.Selects = ExpressionUtil.GetSelectExpression<TResult>(expression.Body);
 
@@ -299,6 +308,10 @@ namespace ExpressionToTSQL.Util
             result.FromStatement += query.FromStatement;
             result.WhereStatement.Append(query.WhereStatement);
             result.JoinStatement.Append(query.JoinStatement);
+            result.OrderByAscendingStatement.Append(query.OrderByAscendingStatement);
+            result.OrderByDescendingStatement.Append(query.OrderByDescendingStatement);
+            result.SkipCount = query.SkipCount;
+            result.TakeCount = query.TakeCount;
 
             result.Selects = ExpressionUtil.GetSelectExpression<TResult>(expression.Body);
 
