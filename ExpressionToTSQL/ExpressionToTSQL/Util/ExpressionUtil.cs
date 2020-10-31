@@ -196,7 +196,13 @@ namespace ExpressionToTSQL.Util
             return joinExpressionResult;
         }
 
-        public static SelectExpressionResult<TResult> MergeTypes<TResult>(object expression)
+        /// <summary>
+        /// Generates a list of properties which assigned by select new expression
+        /// </summary>
+        /// <typeparam name="TResult">The result type which will be generated</typeparam>
+        /// <param name="expression">The expression of select new</param>
+        /// <returns></returns>
+        public static SelectExpressionResult<TResult> GetSelectExpression<TResult>(object expression)
         {
             var result = new SelectExpressionResult<TResult>();
 
