@@ -61,7 +61,7 @@ namespace ExpressionToTSQL
             var simpleSelectForOne = context.Samples
                                     .Where(x => x.Year > 2000)
                                     .SortByDesc(x => x.Year)
-                                    .Select<SampleEntity, OtherEntity>(x => new OtherEntity
+                                    .Select(x => new OtherEntity
                                     {
                                         NumericSomething = x.Id,
                                         SomeText = x.Name
