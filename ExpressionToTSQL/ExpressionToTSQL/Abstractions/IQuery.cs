@@ -46,11 +46,13 @@ namespace ExpressionToTSQL.Abstractions
         /// <summary>
         /// The count of data which will fetch
         /// </summary>
-        public int? TakeCount { get; set; }
+        int? TakeCount { get; set; }
 
         /// <summary>
         /// The skip row count of the data which will fetch
         /// </summary>
-        public int? SkipCount { get; set; }
+        int? SkipCount { get; set; }
+
+        SelectExpressionResult<T> Selects { get; set; }
     }
 }

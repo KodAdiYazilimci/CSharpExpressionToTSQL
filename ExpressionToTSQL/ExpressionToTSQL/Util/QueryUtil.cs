@@ -87,7 +87,31 @@ namespace ExpressionToTSQL.Util
         {
             StringBuilder sbQuery = new StringBuilder();
 
-            sbQuery.Append($"SELECT { (query.TakeCount.HasValue ? "TOP " + query.TakeCount.Value.ToString() : "") } * ");
+            sbQuery.Append($"SELECT { (query.TakeCount.HasValue ? "TOP " + query.TakeCount.Value.ToString() : "") }");
+
+            if (query.Selects.PropertyAssignments.Any())
+            {
+                for (int i = 0; i < query.Selects.PropertyAssignments.Count; i++)
+                {
+                    sbQuery.Append(query.Selects.PropertyAssignments[i].FromType.Name.ToLower());
+                    sbQuery.Append(".");
+                    sbQuery.Append(query.Selects.PropertyAssignments[i].FromProperty);
+                    sbQuery.Append(" AS ");
+                    sbQuery.Append(query.Selects.PropertyAssignments[i].PropertyName);
+
+                    if (i < query.Selects.PropertyAssignments.Count - 1)
+                    {
+                        sbQuery.Append(", ");
+                    }
+                    else
+                        sbQuery.Append(" ");
+                }
+            }
+            else
+            {
+                sbQuery.Append(" * ");
+            }
+
             sbQuery.Append(query.FromStatement);
             sbQuery.Append(query.JoinStatement);
             sbQuery.Append(" WHERE ");
@@ -194,7 +218,6 @@ namespace ExpressionToTSQL.Util
 
             result.FromStatement += query.FromStatement;
             result.WhereStatement.Append(query.WhereStatement);
-            result.ConnectionString = query.ConnectionString;
 
             JoinExpressionResult joinExpression = ExpressionUtil.GetJoinExpression<TOther>(rightOtherTableColumn.Body);
             joinExpression.FromColumnName = ExpressionUtil.GetJoinExpression<T>(leftTableColumn).ColumnName;
@@ -213,6 +236,32 @@ namespace ExpressionToTSQL.Util
             query.JoinStatement.Append(joinExpression.ColumnName);
 
             result.JoinStatement.Append(query.JoinStatement);
+
+            return result;
+        }
+
+        public static IQuery<TResult> Select<T, TResult>(this IQuery<T> query, Expression<Func<T, TResult>> expression)
+        {
+            IQuery<TResult> result = Activator.CreateInstance(typeof(Entity<TResult>), args: query.ConnectionString) as Entity<TResult>;
+
+            result.FromStatement += query.FromStatement;
+            result.WhereStatement.Append(query.WhereStatement);
+            result.JoinStatement.Append(query.JoinStatement);
+
+            result.Selects = ExpressionUtil.MergeTypes<TResult>(expression.Body);
+
+            return result;
+        }
+
+        public static IQuery<TResult> Select<T, TOther, TResult>(this IQuery<T> query, Expression<Func<T, TOther, TResult>> expression)
+        {
+            IQuery<TResult> result = Activator.CreateInstance(typeof(Entity<TResult>), args: query.ConnectionString) as Entity<TResult>;
+
+            result.FromStatement += query.FromStatement;
+            result.WhereStatement.Append(query.WhereStatement);
+            result.JoinStatement.Append(query.JoinStatement);
+
+            result.Selects = ExpressionUtil.MergeTypes<TResult>(expression.Body);
 
             return result;
         }

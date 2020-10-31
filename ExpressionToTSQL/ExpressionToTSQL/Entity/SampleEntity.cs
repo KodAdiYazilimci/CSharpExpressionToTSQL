@@ -28,4 +28,10 @@ namespace ExpressionToTSQL.Entity
         public string Name { get; set; }
         public int Year { get; set; }
     }
+
+    public class OtherEntity
+    {
+        public int NumericSomething { get; set; }
+        public string SomeText { get; set; }
+    }
 }

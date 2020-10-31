@@ -1,5 +1,6 @@
 ﻿using ExpressionToTSQL.Model;
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -151,7 +152,7 @@ namespace ExpressionToTSQL.Util
                     joinExpressionResult.TableName = typeof(TRight).Name;
                     joinExpressionResult.ColumnName = memberExpression.Member.Name;
                 }
-                else if(lambdaExpression.Body is UnaryExpression)
+                else if (lambdaExpression.Body is UnaryExpression)
                 {
                     UnaryExpression unaryExpression = lambdaExpression.Body as UnaryExpression;
 
@@ -193,6 +194,39 @@ namespace ExpressionToTSQL.Util
             }
 
             return joinExpressionResult;
+        }
+
+        public static SelectExpressionResult<TResult> MergeTypes<TResult>(object expression)
+        {
+            var result = new SelectExpressionResult<TResult>();
+
+            if (expression is MemberInitExpression)
+            {
+                MemberInitExpression memberInitExpression = expression as MemberInitExpression;
+
+                foreach (object binding in memberInitExpression.Bindings)
+                {
+                    if ((binding as MemberBinding).BindingType == MemberBindingType.Assignment)
+                    {
+                        PropertyAssignmentModel propertyAssignmentModel = new PropertyAssignmentModel();
+
+                        propertyAssignmentModel.PropertyName = (binding as MemberBinding).Member.Name;
+
+                        var memberExpression = (binding as dynamic);
+
+                        var exp = (memberExpression.Expression as Expression);
+
+                        var subExp = ((exp as dynamic).Expression as Expression);
+
+                        propertyAssignmentModel.FromType = subExp.Type;
+                        propertyAssignmentModel.FromProperty = (exp as MemberExpression).Member.Name;
+
+                        result.PropertyAssignments.Add(propertyAssignmentModel);
+                    }
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -285,7 +319,7 @@ namespace ExpressionToTSQL.Util
 
                     expressionResult.SubPropertyArguments.AddRange((items as int[]).Select(x => x.ToString()).ToList());
                     expressionResult.SubPropertyArgumentType = typeof(int);
-                }             
+                }
 
                 expressionResults.Add(expressionResult);
             }

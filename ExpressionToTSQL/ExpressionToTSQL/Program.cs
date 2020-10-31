@@ -34,15 +34,30 @@ namespace ExpressionToTSQL
             //List<SampleEntity> skippedAndTakenEntities = context.Samples.Skip(2).Take(3).FetchList();
 
 
-            var joinedEntities = context.Samples
+            var simpleSelects = context.Samples
                                         .Where(x => x.Year > 2000)
                                         .SortByDesc(x => x.Year)
-                                        .JoinWith<SampleEntity, OtherSampleEntity>(sampleEntity => sampleEntity.Id, otherEntity => otherEntity.SampleEntityId)
-                                        .Where(x => !string.IsNullOrEmpty(x.Name))
-                                        .SortBy(x => x.Name)
+                                        .Select<SampleEntity, OtherEntity>(x => new OtherEntity
+                                        {
+                                            NumericSomething = x.Id,
+                                            SomeText = x.Name
+                                        })
                                         .FetchList();
 
-            // TO DO: Entities will be merged.
+            var joinedSelectedEntities = context.Samples
+                                .Where(x => x.Year > 2000)
+                                .SortByDesc(x => x.Year)
+                                .JoinWith<SampleEntity, OtherSampleEntity>(sampleEntity => sampleEntity.Id, otherEntity => otherEntity.SampleEntityId)
+                                .Where(x => !string.IsNullOrEmpty(x.Name))
+                                .SortBy(x => x.Name)
+                                .Select<OtherSampleEntity, SampleEntity, JoinedEntity>((x, y) => new JoinedEntity
+                                {
+                                    Id = x.Id,
+                                    Name = y.Name,
+                                    Year = y.Year
+                                })
+                                .FetchList();
+
         }
     }
 }

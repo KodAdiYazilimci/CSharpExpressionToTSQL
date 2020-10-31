@@ -62,5 +62,7 @@ namespace ExpressionToTSQL.Persistence
         /// The Select body of query
         /// </summary>
         public string FromStatement { get; set; }
+
+        public SelectExpressionResult<T> Selects { get; set; } = new SelectExpressionResult<T>();
     }
 }
