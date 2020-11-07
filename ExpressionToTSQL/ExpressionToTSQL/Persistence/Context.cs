@@ -27,7 +27,7 @@ namespace ExpressionToTSQL.Persistence
             {
                 Entity<SampleEntity> entity = new Entity<SampleEntity>(_connectionString);
 
-                entity.FromStatement = " FROM SampleEntity sampleEntity";
+                entity.FromStatement = $" FROM { nameof(SampleEntity)} { nameof(SampleEntity).ToLower() }";
 
                 return entity;
             }
